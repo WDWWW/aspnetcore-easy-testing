@@ -10,12 +10,12 @@ using Moq;
 
 namespace Wd3w.AspNetCore.EasyTesting
 {
-    public class EasyIntergrationTester<TStartup> : IDisposable where TStartup : class
+    public class EasyIntegrationTester<TStartup> : IDisposable where TStartup : class
     {
         private readonly WebApplicationFactory<TStartup> _factory;
         private IServiceProvider _serviceProvider;
 
-        public EasyIntergrationTester(WebApplicationFactory<TStartup> factory)
+        public EasyIntegrationTester(WebApplicationFactory<TStartup> factory)
         {
             _factory = factory;
         }
@@ -63,7 +63,7 @@ namespace Wd3w.AspNetCore.EasyTesting
             }));
         }
 
-        public EasyIntergrationTester<TStartup> WithReplaceService<TService, TImplementation>(ServiceLifetime? lifetime = default)
+        public EasyIntegrationTester<TStartup> WithReplaceService<TService, TImplementation>(ServiceLifetime? lifetime = default)
         {
             CheckClientIsNotCreated(nameof(WithReplaceService));
             OnConfigureTestServices += services =>
@@ -79,14 +79,14 @@ namespace Wd3w.AspNetCore.EasyTesting
             return services.First(d => d.ServiceType == typeof(TService));
         }
 
-        public EasyIntergrationTester<TStartup> WithReplaceService<TService>(TService obj)
+        public EasyIntegrationTester<TStartup> WithReplaceService<TService>(TService obj)
         {
             CheckClientIsNotCreated(nameof(WithReplaceService));
             OnConfigureTestServices += services => services.Replace(new ServiceDescriptor(typeof(TService), _ => obj, ServiceLifetime.Singleton));
             return this;
         }
 
-        public EasyIntergrationTester<TStartup> WithMockService<TService>(out Mock<TService> mock) where TService : class
+        public EasyIntegrationTester<TStartup> WithMockService<TService>(out Mock<TService> mock) where TService : class
         {
             CheckClientIsNotCreated(nameof(WithMockService));
             mock = new Mock<TService>();
@@ -94,7 +94,7 @@ namespace Wd3w.AspNetCore.EasyTesting
             return this;
         }
 
-        public EasyIntergrationTester<TStartup> WithSetupFixture<TService>(Func<TService, Task> action)
+        public EasyIntegrationTester<TStartup> WithSetupFixture<TService>(Func<TService, Task> action)
         {
             OnSetupFixtures += provider => action.Invoke(provider.GetService<TService>());
             return this;

@@ -8,6 +8,11 @@ namespace Wd3w.AspNetCore.EasyTesting
 {
     public static class HttpResponseMessageAssertionHelper
     {
+        public static JsonSerializerOptions JsonSerializerOptions { get; set; } = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+
         public static void ShouldBeOk(this HttpResponseMessage message)
         {
             message.ShouldBe(HttpStatusCode.OK);
@@ -52,7 +57,7 @@ namespace Wd3w.AspNetCore.EasyTesting
         public static async Task<TResponse> JsonBody<TResponse>(this HttpResponseMessage message)
         {
             var body = await message.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<TResponse>(body);
+            return JsonSerializer.Deserialize<TResponse>(body, JsonSerializerOptions);
         }
     }
 }

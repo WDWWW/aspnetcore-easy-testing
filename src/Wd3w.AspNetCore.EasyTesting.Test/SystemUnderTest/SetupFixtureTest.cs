@@ -10,7 +10,7 @@ namespace Wd3w.AspNetCore.EasyTesting.Test.SystemUnderTest
     public class SetupFixtureTest : SystemUnderTestBase
     {
         [Fact]
-        public void SetupFixture_Should_CallOnceServiceMethod_When_CreateClient()
+        public void Should_CallOnceServiceMethod_When_CreateClient()
         {
             // Given
             SUT.MockService<ISampleService>(out var mock)
@@ -29,7 +29,7 @@ namespace Wd3w.AspNetCore.EasyTesting.Test.SystemUnderTest
         }
 
         [Fact]
-        public void SetupFixture_Should_CallOnceServiceMethod_When_CreateDefaultClient()
+        public void Should_CallOnceServiceMethod_When_CreateDefaultClient()
         {
             // Given
             SUT.MockService<ISampleService>(out var mock)
@@ -48,7 +48,7 @@ namespace Wd3w.AspNetCore.EasyTesting.Test.SystemUnderTest
         }
 
         [Fact]
-        public void SetupFixture_Should_ThrowException_When_TryToCallSetupFixtureAfterCreateClient()
+        public void Should_ThrowException_When_TryToCallSetupFixtureAfterCreateClient()
         {
             // Given
             SUT.CreateClient();

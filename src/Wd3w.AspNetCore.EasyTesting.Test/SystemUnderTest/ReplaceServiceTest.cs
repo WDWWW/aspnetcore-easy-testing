@@ -32,7 +32,7 @@ namespace Wd3w.AspNetCore.EasyTesting.Test.SystemUnderTest
         }
 
         [Fact]
-        public async Task ReplaceService_Should_RegisterServiceAsSingleton_With_ScopeIsSingleton()
+        public async Task Should_RegisterServiceAsSingleton_With_ScopeIsSingleton()
         {
             var httpClient = SUT
                 .ReplaceService<ISampleService, GuidSampleService>(ServiceLifetime.Singleton)
@@ -47,7 +47,7 @@ namespace Wd3w.AspNetCore.EasyTesting.Test.SystemUnderTest
         }
 
         [Fact]
-        public async Task ReplaceService_Should_RegisterServiceLifeTimeIsSameWithOriginal_With_ScopeIsNotProvided()
+        public async Task Should_RegisterServiceLifeTimeIsSameWithOriginal_With_ScopeIsNotProvided()
         {
             var httpClient = SUT
                 .ReplaceService<ISampleService, GuidSampleService>()
@@ -62,7 +62,7 @@ namespace Wd3w.AspNetCore.EasyTesting.Test.SystemUnderTest
         }
 
         [Fact]
-        public async Task ReplaceService_Should_ReplaceService()
+        public async Task Should_ReplaceService()
         {
             var httpClient = SUT
                 .ReplaceService<ISampleService, FakeSampleService>()
@@ -75,7 +75,20 @@ namespace Wd3w.AspNetCore.EasyTesting.Test.SystemUnderTest
         }
 
         [Fact]
-        public async Task ReplaceService_Should_ReplaceService_When_ImplementationObject()
+        public void Should_ThrowException_When_TryToCallReplaceServiceAfterCreateClient()
+        {
+            // Given
+            SUT.CreateClient();
+
+            // When
+            Action callReplaceService = () => SUT.ReplaceService<ISampleService, FakeSampleService>();
+
+            // Then
+            callReplaceService.Should().Throw<InvalidOperationException>();
+        }
+
+        [Fact]
+        public async Task Should_When_ImplementationObject()
         {
             var serviceObject = new FakeSampleService
             {
@@ -89,19 +102,6 @@ namespace Wd3w.AspNetCore.EasyTesting.Test.SystemUnderTest
 
             var sample = await response.ShouldBeOk<SampleDataResponse>();
             sample.Data.Should().Be("Fake More!");
-        }
-
-        [Fact]
-        public void ReplaceService_Should_ThrowException_When_TryToCallReplaceServiceAfterCreateClient()
-        {
-            // Given
-            SUT.CreateClient();
-
-            // When
-            Action callReplaceService = () => SUT.ReplaceService<ISampleService, FakeSampleService>();
-
-            // Then
-            callReplaceService.Should().Throw<InvalidOperationException>();
         }
     }
 }

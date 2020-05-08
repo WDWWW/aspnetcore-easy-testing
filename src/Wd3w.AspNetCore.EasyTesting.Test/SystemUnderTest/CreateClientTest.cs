@@ -9,7 +9,7 @@ namespace Wd3w.AspNetCore.EasyTesting.Test.SystemUnderTest
     public class CreateClientTest : SystemUnderTestBase
     {
         [Fact]
-        public async Task CreateClient_Should_ReturnHttpClientAndWork()
+        public async Task Should_ReturnHttpClientAndWork()
         {
             // Given
             // WHen

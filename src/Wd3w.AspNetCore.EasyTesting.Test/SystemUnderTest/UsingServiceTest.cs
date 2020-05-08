@@ -1,5 +1,4 @@
 using System;
-using System.Threading.Tasks;
 using FluentAssertions;
 using Moq;
 using Wd3w.AspNetCore.EasyTesting.SampleApi.Services;
@@ -10,7 +9,7 @@ namespace Wd3w.AspNetCore.EasyTesting.Test.SystemUnderTest
     public class UsingServiceTest : SystemUnderTestBase
     {
         [Fact]
-        public async Task Should_CallOnceServiceMethod_When_ServiceIsUsedInUsingServiceAsync()
+        public void Should_CallOnceServiceMethod_When_ServiceIsUsedInUsingServiceAsync()
         {
             // Given
             SUT.MockService<ISampleService>(out var mock)

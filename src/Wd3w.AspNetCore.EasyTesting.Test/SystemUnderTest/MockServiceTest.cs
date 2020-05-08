@@ -12,7 +12,7 @@ namespace Wd3w.AspNetCore.EasyTesting.Test.SystemUnderTest
     public class MockServiceTest : SystemUnderTestBase
     {
         [Fact]
-        public async Task MockService_Should_ReplaceWithMockObjectOfServiceType()
+        public async Task Should_ReplaceWithMockObjectOfServiceType()
         {
             // Given
             var httpClient = SUT.MockService<ISampleService>(out var mock)
@@ -31,7 +31,7 @@ namespace Wd3w.AspNetCore.EasyTesting.Test.SystemUnderTest
         }
 
         [Fact]
-        public void MockService_Should_ThrowException_When_TryToCallMockServiceAfterCreateClient()
+        public void Should_ThrowException_When_TryToCallMockServiceAfterCreateClient()
         {
             // Given
             var httpClient = SUT.CreateClient();

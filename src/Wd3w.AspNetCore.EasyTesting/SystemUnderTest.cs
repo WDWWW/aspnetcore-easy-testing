@@ -16,6 +16,8 @@ namespace Wd3w.AspNetCore.EasyTesting
 
         private IServiceProvider _serviceProvider;
 
+        private IServiceCollection _serviceCollection;
+
         private event SetupFixtureHandler OnSetupFixtures;
 
         private event ConfigureTestServiceHandler OnConfigureTestServices;
@@ -77,6 +79,7 @@ namespace Wd3w.AspNetCore.EasyTesting
             return _factory.WithWebHostBuilder(builder => builder.ConfigureTestServices(services =>
             {
                 OnConfigureTestServices?.Invoke(services);
+                _serviceCollection = services;
                 var provider = services.BuildServiceProvider();
                 _serviceProvider = provider;
 
@@ -194,6 +197,16 @@ namespace Wd3w.AspNetCore.EasyTesting
                 action.Invoke(_serviceProvider.GetService<TService1>(), _serviceProvider.GetService<TService2>(),
                     _serviceProvider.GetService<TService3>());
             }
+        }
+
+        public bool VerifyRegisteredLifeTimeOfService<TService>(ServiceLifetime lifetime)
+        {
+            if (_serviceCollection == default)
+                throw new InvalidOperationException("Should create client before verify service's registered lifetime.");
+            var descriptor = _serviceCollection.FirstOrDefault(d => d.ServiceType == typeof(TService)) ??
+                throw new InvalidOperationException("The provided service type is not registered from SUT service collection.");
+
+            return descriptor.Lifetime == lifetime;
         }
 
         public void Dispose()

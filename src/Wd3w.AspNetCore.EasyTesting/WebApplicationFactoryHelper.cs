@@ -4,9 +4,10 @@ namespace Wd3w.AspNetCore.EasyTesting
 {
     public static class WebApplicationFactoryHelper
     {
-        public static EasyIntegrationTester<TStartup> Easy<TStartup>(this WebApplicationFactory<TStartup> factory) where TStartup : class
+        public static SystemUnderTest<TStartup> AsSystemUnderTest<TStartup>(
+            this WebApplicationFactory<TStartup> factory) where TStartup : class
         {
-            return new EasyIntegrationTester<TStartup>(factory);
+            return new SystemUnderTest<TStartup>(factory);
         }
     }
 }

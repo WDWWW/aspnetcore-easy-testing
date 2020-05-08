@@ -10,24 +10,47 @@ using Moq;
 
 namespace Wd3w.AspNetCore.EasyTesting
 {
-    public class EasyIntegrationTester<TStartup> : IDisposable where TStartup : class
+    public class SystemUnderTest<TStartup> : IDisposable where TStartup : class
     {
         private readonly WebApplicationFactory<TStartup> _factory;
+
         private IServiceProvider _serviceProvider;
-
-        public EasyIntegrationTester(WebApplicationFactory<TStartup> factory)
-        {
-            _factory = factory;
-        }
-
-        public void Dispose()
-        {
-            _factory?.Dispose();
-        }
 
         private event SetupFixtureHandler OnSetupFixtures;
 
         private event ConfigureTestServiceHandler OnConfigureTestServices;
+
+        private void CheckClientIsNotCreated(string methodName)
+        {
+            if (_serviceProvider != default)
+                throw new InvalidOperationException(
+                    $"{methodName}는 CreateClient/CreateHestify CreateClient/CreateHestify 호출 이전에만 사용할 수 있습니다.");
+        }
+
+        private void CheckClientIsCreated(string methodName)
+        {
+            if (_serviceProvider == default)
+                throw new InvalidOperationException($"{methodName}는 CreateClient/CreateHestify 생성 이후에만 사용할 수 있습니다.");
+        }
+
+        private delegate void ConfigureTestServiceHandler(IServiceCollection services);
+
+        private delegate Task SetupFixtureHandler(IServiceProvider provider);
+
+        private static ServiceDescriptor FindOriginServiceDescriptor<TService>(IServiceCollection services)
+        {
+            return services.First(d => d.ServiceType == typeof(TService));
+        }
+
+        public SystemUnderTest()
+        {
+            _factory = new WebApplicationFactory<TStartup>();
+        }
+
+        public SystemUnderTest(WebApplicationFactory<TStartup> factory)
+        {
+            _factory = factory;
+        }
 
         public HttpClient CreateClient()
         {
@@ -54,47 +77,45 @@ namespace Wd3w.AspNetCore.EasyTesting
             return _factory.WithWebHostBuilder(builder => builder.ConfigureTestServices(services =>
             {
                 OnConfigureTestServices?.Invoke(services);
-                _serviceProvider = services.BuildServiceProvider();
+                var provider = services.BuildServiceProvider();
+                _serviceProvider = provider;
 
-                using (_serviceProvider.CreateScope())
+                using (provider.CreateScope())
                 {
-                    OnSetupFixtures?.Invoke(_serviceProvider).Wait();
+                    OnSetupFixtures?.Invoke(provider).Wait();
                 }
             }));
         }
 
-        public EasyIntegrationTester<TStartup> WithReplaceService<TService, TImplementation>(ServiceLifetime? lifetime = default)
+        public SystemUnderTest<TStartup> ReplaceService<TService, TImplementation>(ServiceLifetime? lifetime = default)
         {
-            CheckClientIsNotCreated(nameof(WithReplaceService));
+            CheckClientIsNotCreated(nameof(ReplaceService));
             OnConfigureTestServices += services =>
             {
                 var descriptor = FindOriginServiceDescriptor<TService>(services);
-                services.Replace(new ServiceDescriptor(typeof(TService), typeof(TImplementation), lifetime ?? descriptor.Lifetime));
+                services.Replace(new ServiceDescriptor(typeof(TService), typeof(TImplementation),
+                    lifetime ?? descriptor.Lifetime));
             };
             return this;
         }
 
-        private static ServiceDescriptor FindOriginServiceDescriptor<TService>(IServiceCollection services)
+        public SystemUnderTest<TStartup> ReplaceService<TService>(TService obj)
         {
-            return services.First(d => d.ServiceType == typeof(TService));
-        }
-
-        public EasyIntegrationTester<TStartup> WithReplaceService<TService>(TService obj)
-        {
-            CheckClientIsNotCreated(nameof(WithReplaceService));
-            OnConfigureTestServices += services => services.Replace(new ServiceDescriptor(typeof(TService), _ => obj, ServiceLifetime.Singleton));
+            CheckClientIsNotCreated(nameof(ReplaceService));
+            OnConfigureTestServices += services =>
+                services.Replace(new ServiceDescriptor(typeof(TService), _ => obj, ServiceLifetime.Singleton));
             return this;
         }
 
-        public EasyIntegrationTester<TStartup> WithMockService<TService>(out Mock<TService> mock) where TService : class
+        public SystemUnderTest<TStartup> MockService<TService>(out Mock<TService> mock) where TService : class
         {
-            CheckClientIsNotCreated(nameof(WithMockService));
+            CheckClientIsNotCreated(nameof(MockService));
             mock = new Mock<TService>();
-            WithReplaceService(mock.Object);
+            ReplaceService(mock.Object);
             return this;
         }
 
-        public EasyIntegrationTester<TStartup> WithSetupFixture<TService>(Func<TService, Task> action)
+        public SystemUnderTest<TStartup> SetupFixture<TService>(Func<TService, Task> action)
         {
             OnSetupFixtures += provider => action.Invoke(provider.GetService<TService>());
             return this;
@@ -127,7 +148,8 @@ namespace Wd3w.AspNetCore.EasyTesting
             }
         }
 
-        public async Task UsingServiceAsync<TService1, TService2, TService3>(Func<TService1, TService2, TService3, Task> action)
+        public async Task UsingServiceAsync<TService1, TService2, TService3>(
+            Func<TService1, TService2, TService3, Task> action)
         {
             CheckClientIsCreated(nameof(UsingService));
             using (_serviceProvider.CreateScope())
@@ -174,20 +196,9 @@ namespace Wd3w.AspNetCore.EasyTesting
             }
         }
 
-        private void CheckClientIsNotCreated(string methodName)
+        public void Dispose()
         {
-            if (_serviceProvider != default)
-                throw new InvalidOperationException($"{methodName}는 CreateClient/CreateHestify CreateClient/CreateHestify 호출 이전에만 사용할 수 있습니다.");
+            _factory?.Dispose();
         }
-
-        private void CheckClientIsCreated(string methodName)
-        {
-            if (_serviceProvider == default)
-                throw new InvalidOperationException($"{methodName}는 CreateClient/CreateHestify 생성 이후에만 사용할 수 있습니다.");
-        }
-
-        private delegate void ConfigureTestServiceHandler(IServiceCollection services);
-
-        private delegate Task SetupFixtureHandler(IServiceProvider provider);
     }
 }

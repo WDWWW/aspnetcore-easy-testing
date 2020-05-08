@@ -48,13 +48,14 @@ namespace Wd3w.AspNetCore.EasyTesting
             message.StatusCode.Should().Be(code);
         }
 
-        public static async Task<TResponse> ShouldBeCodeWithBody<TResponse>(this HttpResponseMessage message, HttpStatusCode code)
+        public static async Task<TResponse> ShouldBeCodeWithBody<TResponse>(this HttpResponseMessage message,
+            HttpStatusCode code)
         {
             message.ShouldBe(code);
-            return await message.JsonBody<TResponse>();
+            return await message.ReadJsonBodyAsync<TResponse>();
         }
 
-        public static async Task<TResponse> JsonBody<TResponse>(this HttpResponseMessage message)
+        public static async Task<TResponse> ReadJsonBodyAsync<TResponse>(this HttpResponseMessage message)
         {
             var body = await message.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<TResponse>(body, JsonSerializerOptions);

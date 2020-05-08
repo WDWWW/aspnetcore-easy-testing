@@ -32,19 +32,6 @@ namespace Wd3w.AspNetCore.EasyTesting.Test.SystemUnderTest
         }
 
         [Fact]
-        public async Task ReplaceService_Should_ReplaceService()
-        {
-            var httpClient = SUT
-                .ReplaceService<ISampleService, FakeSampleService>()
-                .CreateClient();
-
-            var response = await httpClient.Resource("api/sample/data").GetAsync();
-
-            var sample = await response.ShouldBeOk<SampleDataResponse>();
-            sample.Data.Should().Be("Fake!");
-        }
-
-        [Fact]
         public async Task ReplaceService_Should_RegisterServiceAsSingleton_With_ScopeIsSingleton()
         {
             var httpClient = SUT
@@ -75,6 +62,19 @@ namespace Wd3w.AspNetCore.EasyTesting.Test.SystemUnderTest
         }
 
         [Fact]
+        public async Task ReplaceService_Should_ReplaceService()
+        {
+            var httpClient = SUT
+                .ReplaceService<ISampleService, FakeSampleService>()
+                .CreateClient();
+
+            var response = await httpClient.Resource("api/sample/data").GetAsync();
+
+            var sample = await response.ShouldBeOk<SampleDataResponse>();
+            sample.Data.Should().Be("Fake!");
+        }
+
+        [Fact]
         public async Task ReplaceService_Should_ReplaceService_When_ImplementationObject()
         {
             var serviceObject = new FakeSampleService
@@ -89,6 +89,19 @@ namespace Wd3w.AspNetCore.EasyTesting.Test.SystemUnderTest
 
             var sample = await response.ShouldBeOk<SampleDataResponse>();
             sample.Data.Should().Be("Fake More!");
+        }
+
+        [Fact]
+        public void ReplaceService_Should_ThrowException_When_TryToCallReplaceServiceAfterCreateClient()
+        {
+            // Given
+            SUT.CreateClient();
+
+            // When
+            Action callReplaceService = () => SUT.ReplaceService<ISampleService, FakeSampleService>();
+
+            // Then
+            callReplaceService.Should().Throw<InvalidOperationException>();
         }
     }
 }

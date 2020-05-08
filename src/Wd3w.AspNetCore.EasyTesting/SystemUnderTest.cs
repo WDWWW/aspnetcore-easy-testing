@@ -14,9 +14,24 @@ namespace Wd3w.AspNetCore.EasyTesting
     {
         private readonly WebApplicationFactory<TStartup> _factory;
 
+        private IServiceCollection _serviceCollection;
+
         private IServiceProvider _serviceProvider;
 
-        private IServiceCollection _serviceCollection;
+        public SystemUnderTest()
+        {
+            _factory = new WebApplicationFactory<TStartup>();
+        }
+
+        public SystemUnderTest(WebApplicationFactory<TStartup> factory)
+        {
+            _factory = factory;
+        }
+
+        public void Dispose()
+        {
+            _factory?.Dispose();
+        }
 
         private event SetupFixtureHandler OnSetupFixtures;
 
@@ -35,23 +50,9 @@ namespace Wd3w.AspNetCore.EasyTesting
                 throw new InvalidOperationException($"{methodName}는 CreateClient/CreateHestify 생성 이후에만 사용할 수 있습니다.");
         }
 
-        private delegate void ConfigureTestServiceHandler(IServiceCollection services);
-
-        private delegate Task SetupFixtureHandler(IServiceProvider provider);
-
         private static ServiceDescriptor FindOriginServiceDescriptor<TService>(IServiceCollection services)
         {
             return services.First(d => d.ServiceType == typeof(TService));
-        }
-
-        public SystemUnderTest()
-        {
-            _factory = new WebApplicationFactory<TStartup>();
-        }
-
-        public SystemUnderTest(WebApplicationFactory<TStartup> factory)
-        {
-            _factory = factory;
         }
 
         public HttpClient CreateClient()
@@ -120,13 +121,14 @@ namespace Wd3w.AspNetCore.EasyTesting
 
         public SystemUnderTest<TStartup> SetupFixture<TService>(Func<TService, Task> action)
         {
+            CheckClientIsNotCreated(nameof(SetupFixture));
             OnSetupFixtures += provider => action.Invoke(provider.GetService<TService>());
             return this;
         }
 
         public async Task UsingServiceAsync(Func<IServiceProvider, Task> action)
         {
-            CheckClientIsCreated(nameof(UsingService));
+            CheckClientIsCreated(nameof(UsingServiceAsync));
             using (_serviceProvider.CreateScope())
             {
                 await action.Invoke(_serviceProvider);
@@ -135,7 +137,7 @@ namespace Wd3w.AspNetCore.EasyTesting
 
         public async Task UsingServiceAsync<TService>(Func<TService, Task> action)
         {
-            CheckClientIsCreated(nameof(UsingService));
+            CheckClientIsCreated(nameof(UsingServiceAsync));
             using (_serviceProvider.CreateScope())
             {
                 await action.Invoke(_serviceProvider.GetService<TService>());
@@ -144,7 +146,7 @@ namespace Wd3w.AspNetCore.EasyTesting
 
         public async Task UsingServiceAsync<TService1, TService2>(Func<TService1, TService2, Task> action)
         {
-            CheckClientIsCreated(nameof(UsingService));
+            CheckClientIsCreated(nameof(UsingServiceAsync));
             using (_serviceProvider.CreateScope())
             {
                 await action.Invoke(_serviceProvider.GetService<TService1>(), _serviceProvider.GetService<TService2>());
@@ -154,7 +156,7 @@ namespace Wd3w.AspNetCore.EasyTesting
         public async Task UsingServiceAsync<TService1, TService2, TService3>(
             Func<TService1, TService2, TService3, Task> action)
         {
-            CheckClientIsCreated(nameof(UsingService));
+            CheckClientIsCreated(nameof(UsingServiceAsync));
             using (_serviceProvider.CreateScope())
             {
                 await action.Invoke(_serviceProvider.GetService<TService1>(), _serviceProvider.GetService<TService2>(),
@@ -203,15 +205,14 @@ namespace Wd3w.AspNetCore.EasyTesting
         {
             if (_serviceCollection == default)
                 throw new InvalidOperationException("Should create client before verify service's registered lifetime.");
-            var descriptor = _serviceCollection.FirstOrDefault(d => d.ServiceType == typeof(TService)) ??
-                throw new InvalidOperationException("The provided service type is not registered from SUT service collection.");
+            var descriptor = _serviceCollection.FirstOrDefault(d => d.ServiceType == typeof(TService))
+                ?? throw new InvalidOperationException("The provided service type is not registered from SUT service collection.");
 
             return descriptor.Lifetime == lifetime;
         }
 
-        public void Dispose()
-        {
-            _factory?.Dispose();
-        }
+        private delegate void ConfigureTestServiceHandler(IServiceCollection services);
+
+        private delegate Task SetupFixtureHandler(IServiceProvider provider);
     }
 }

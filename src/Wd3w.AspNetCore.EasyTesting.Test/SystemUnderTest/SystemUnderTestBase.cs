@@ -5,6 +5,7 @@ namespace Wd3w.AspNetCore.EasyTesting.Test.SystemUnderTest
 {
     public abstract class SystemUnderTestBase : IDisposable
     {
+        // ReSharper disable once InconsistentNaming
         protected readonly SystemUnderTest<Startup> SUT;
 
         protected SystemUnderTestBase()

@@ -14,7 +14,6 @@ namespace Wd3w.AspNetCore.EasyTesting
         private IServiceCollection _serviceCollection;
 
         private IServiceProvider _serviceProvider;
-        private IDisposable _disposableImplementation;
 
         protected delegate void ConfigureTestServiceHandler(IServiceCollection services);
 

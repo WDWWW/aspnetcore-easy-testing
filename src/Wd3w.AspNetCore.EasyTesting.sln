@@ -14,6 +14,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wd3w.AspNetCore.EasyTesting
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wd3w.AspNetCore.EasyTesting.EntityFrameworkCore", "Wd3w.AspNetCore.EasyTesting.EntityFrameworkCore\Wd3w.AspNetCore.EasyTesting.EntityFrameworkCore.csproj", "{67D8C697-B6DA-4475-A642-D58F8DBFF442}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wd3w.AspNetCore.EasyTesting.Hestify", "Wd3w.AspNetCore.EasyTesting.Hestify\Wd3w.AspNetCore.EasyTesting.Hestify.csproj", "{CBEAFC81-3C74-406A-B80A-1930743BFCA7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +38,9 @@ Global
 		{67D8C697-B6DA-4475-A642-D58F8DBFF442}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{67D8C697-B6DA-4475-A642-D58F8DBFF442}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{67D8C697-B6DA-4475-A642-D58F8DBFF442}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CBEAFC81-3C74-406A-B80A-1930743BFCA7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CBEAFC81-3C74-406A-B80A-1930743BFCA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CBEAFC81-3C74-406A-B80A-1930743BFCA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CBEAFC81-3C74-406A-B80A-1930743BFCA7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

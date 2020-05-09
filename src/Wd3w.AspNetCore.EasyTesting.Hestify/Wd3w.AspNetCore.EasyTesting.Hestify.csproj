@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Wd3w.AspNetCore.EasyTesting\Wd3w.AspNetCore.EasyTesting.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Hestify" Version="1.0.0" />
+    </ItemGroup>
+
+</Project>

@@ -46,7 +46,7 @@ namespace Wd3w.AspNetCore.EasyTesting
 
         private WebApplicationFactory<TStartup> WithWebHostBuilder()
         {
-            return _factory.WithWebHostBuilder(builder => builder.ConfigureTestServices(ConfigureTestServices));
+            return _factory.WithWebHostBuilder(ConfigureWebHostBuilder);
         }
     }
 }

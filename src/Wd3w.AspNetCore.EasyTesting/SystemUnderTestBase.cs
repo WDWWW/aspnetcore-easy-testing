@@ -2,7 +2,10 @@ using System;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
@@ -15,13 +18,19 @@ namespace Wd3w.AspNetCore.EasyTesting
 
         private IServiceProvider _serviceProvider;
 
+        public IServiceProvider ServiceProvider => _serviceProvider;
+
         protected delegate void ConfigureTestServiceHandler(IServiceCollection services);
 
         protected delegate Task SetupFixtureHandler(IServiceProvider provider);
 
+        protected delegate void ConfigureWebHostBuilderHandler(IWebHostBuilder builder);
+
         protected event SetupFixtureHandler OnSetupFixtures;
 
         protected event ConfigureTestServiceHandler OnConfigureTestServices;
+
+        protected event ConfigureWebHostBuilderHandler OnConfigureWebHostBuilder;
 
         protected void CheckClientIsNotCreated(string methodName)
         {
@@ -70,6 +79,8 @@ namespace Wd3w.AspNetCore.EasyTesting
             OnSetupFixtures += provider => action.Invoke(provider.GetService<TService>());
             return this;
         }
+
+
 
         private static ServiceDescriptor FindOriginServiceDescriptor<TService>(IServiceCollection services)
         {
@@ -161,17 +172,45 @@ namespace Wd3w.AspNetCore.EasyTesting
             return descriptor.Lifetime == lifetime;
         }
 
-        internal void ConfigureTestServices(IServiceCollection services)
+        public SystemUnderTestBase SetupWebHostBuilder(Action<IWebHostBuilder> configureAction)
         {
-            OnConfigureTestServices?.Invoke(services);
-            _serviceCollection = services;
-            var provider = services.BuildServiceProvider();
-            _serviceProvider = provider;
+            OnConfigureWebHostBuilder += configureAction.Invoke;
+            return this;
+        }
 
-            using (provider.CreateScope())
+        public SystemUnderTestBase UseSetting(string key, string value)
+        {
+            OnConfigureWebHostBuilder += builder => builder.UseSetting(key, value);
+            return this;
+        }
+
+        public SystemUnderTestBase ConfigureAppConfiguration(Action<IConfigurationBuilder> configureAction)
+        {
+            OnConfigureWebHostBuilder += builder => builder.ConfigureAppConfiguration(configureAction);
+            return this;
+        }
+
+        public SystemUnderTestBase ConfigureServices(Action<IServiceCollection> configureServices)
+        {
+            OnConfigureWebHostBuilder += builder => builder.ConfigureServices(configureServices);
+            return this;
+        }
+
+        internal void ConfigureWebHostBuilder(IWebHostBuilder builder)
+        {
+            OnConfigureWebHostBuilder?.Invoke(builder);
+            builder.ConfigureTestServices(services =>
             {
-                OnSetupFixtures?.Invoke(provider).Wait();
-            }
+                OnConfigureTestServices?.Invoke(services);
+                _serviceCollection = services;
+                var provider = services.BuildServiceProvider();
+                _serviceProvider = provider;
+
+                using (provider.CreateScope())
+                {
+                    OnSetupFixtures?.Invoke(provider).Wait();
+                }
+            });
         }
 
         public abstract HttpClient CreateClient();

@@ -3,11 +3,12 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Moq;
 using Wd3w.AspNetCore.EasyTesting.SampleApi.Services;
+using Wd3w.AspNetCore.EasyTesting.Test.Common;
 using Xunit;
 
 namespace Wd3w.AspNetCore.EasyTesting.Test.SystemUnderTest
 {
-    public class SetupFixtureTest : SystemUnderTestBase
+    public class SetupFixtureTest : EasyTestingTestBase
     {
         [Fact]
         public void Should_CallOnceServiceMethod_When_CreateClient()

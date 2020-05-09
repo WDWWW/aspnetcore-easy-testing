@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Wd3w.AspNetCore.EasyTesting.SampleApi.Entities;
 using Wd3w.AspNetCore.EasyTesting.SampleApi.Services;
 
 namespace Wd3w.AspNetCore.EasyTesting.SampleApi
@@ -15,6 +17,10 @@ namespace Wd3w.AspNetCore.EasyTesting.SampleApi
         {
             services.AddControllers();
             services.AddScoped<ISampleService, SampleService>();
+            services.AddDbContext<SampleDb>();
+            services.AddSingleton(new DbContextOptionsBuilder<SampleDb>()
+                .UseNpgsql("Host=my_host;Database=my_db;Username=my_user;Password=my_pw")
+                .Options);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

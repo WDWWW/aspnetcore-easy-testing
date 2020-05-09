@@ -2,11 +2,12 @@ using System;
 using FluentAssertions;
 using Moq;
 using Wd3w.AspNetCore.EasyTesting.SampleApi.Services;
+using Wd3w.AspNetCore.EasyTesting.Test.Common;
 using Xunit;
 
 namespace Wd3w.AspNetCore.EasyTesting.Test.SystemUnderTest
 {
-    public class UsingServiceTest : SystemUnderTestBase
+    public class UsingServiceTest : EasyTestingTestBase
     {
         [Fact]
         public void Should_CallOnceServiceMethod_When_ServiceIsUsedInUsingServiceAsync()

@@ -2,11 +2,12 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Hestify;
 using Wd3w.AspNetCore.EasyTesting.SampleApi.Models;
+using Wd3w.AspNetCore.EasyTesting.Test.Common;
 using Xunit;
 
 namespace Wd3w.AspNetCore.EasyTesting.Test.SystemUnderTest
 {
-    public class CreateClientTest : SystemUnderTestBase
+    public class CreateClientTest : EasyTestingTestBase
     {
         [Fact]
         public async Task Should_ReturnHttpClientAndWork()

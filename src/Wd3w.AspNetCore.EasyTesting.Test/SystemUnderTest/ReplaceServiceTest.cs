@@ -5,11 +5,12 @@ using Hestify;
 using Microsoft.Extensions.DependencyInjection;
 using Wd3w.AspNetCore.EasyTesting.SampleApi.Models;
 using Wd3w.AspNetCore.EasyTesting.SampleApi.Services;
+using Wd3w.AspNetCore.EasyTesting.Test.Common;
 using Xunit;
 
 namespace Wd3w.AspNetCore.EasyTesting.Test.SystemUnderTest
 {
-    public class ReplaceServiceTest : SystemUnderTestBase
+    public class ReplaceServiceTest : EasyTestingTestBase
     {
         public class FakeSampleService : ISampleService
         {

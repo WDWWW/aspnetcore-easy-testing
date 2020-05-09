@@ -2,11 +2,12 @@ using System;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Wd3w.AspNetCore.EasyTesting.SampleApi.Services;
+using Wd3w.AspNetCore.EasyTesting.Test.Common;
 using Xunit;
 
 namespace Wd3w.AspNetCore.EasyTesting.Test.SystemUnderTest
 {
-    public class VerifyRegisteredLifeTimeOfServiceTest : SystemUnderTestBase
+    public class VerifyRegisteredLifeTimeOfServiceTest : EasyTestingTestBase
     {
         [Fact]
         public void Should_ReturnTrue_When_SampleServiceIsRegisteredAsScoped()

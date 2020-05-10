@@ -1,7 +1,19 @@
+using FluentAssertions;
+using Wd3w.AspNetCore.EasyTesting.Test.Common;
+using Xunit;
+
 namespace Wd3w.AspNetCore.EasyTesting.Test.SystemUnderTest
 {
-    public class ConfigureAppConfigurationTest
+    public class ConfigureAppConfigurationTest : EasyTestingTestBase
     {
-        // Todo write test;
+        [Fact]
+        public void Should_CallBackIsCalled_When_CreateClient()
+        {
+            var called = false;
+            SUT.ConfigureAppConfiguration(builder => called = true)
+                .CreateClient();
+
+            called.Should().BeTrue();
+        }
     }
 }

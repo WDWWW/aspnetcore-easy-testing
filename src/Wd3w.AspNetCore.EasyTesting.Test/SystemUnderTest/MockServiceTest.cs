@@ -32,10 +32,27 @@ namespace Wd3w.AspNetCore.EasyTesting.Test.SystemUnderTest
         }
 
         [Fact]
+        public async Task Should_ReplaceWithMockObjectOfServiceType_When_ProvidedByAction()
+        {
+            // Given
+            var httpClient = SUT.MockService<ISampleService>(_ => _
+                    .Setup(service => service.GetSampleDate())
+                    .Returns("Action mocked!"))
+                .CreateClient();
+
+            // When
+            var message = await httpClient.Resource("api/sample/data").GetAsync();
+
+            // Then
+            var sample = await message.ShouldBeOk<SampleDataResponse>();
+            sample.Data.Should().Be("Action mocked!");
+        }
+
+        [Fact]
         public void Should_ThrowException_When_TryToCallMockServiceAfterCreateClient()
         {
             // Given
-            var httpClient = SUT.CreateClient();
+            SUT.CreateClient();
 
             // When
             Action callMockService = () => SUT.MockService<ISampleService>(out _);

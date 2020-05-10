@@ -20,6 +20,10 @@ namespace Wd3w.AspNetCore.EasyTesting
 
         public IServiceProvider ServiceProvider => _serviceProvider;
 
+        internal IServiceCollection InternalServiceCollection { get; } = new ServiceCollection();
+
+        internal IServiceProvider InternalServiceProvider => InternalServiceCollection.BuildServiceProvider();
+
         protected delegate void ConfigureTestServiceHandler(IServiceCollection services);
 
         protected delegate Task SetupFixtureHandler(IServiceProvider provider);
@@ -68,8 +72,26 @@ namespace Wd3w.AspNetCore.EasyTesting
         public SystemUnderTestBase MockService<TService>(out Mock<TService> mock) where TService : class
         {
             CheckClientIsNotCreated(nameof(MockService));
-            mock = new Mock<TService>();
-            ReplaceService(mock.Object);
+
+            var service = InternalServiceProvider.GetService<Mock<TService>>();
+            if (service == default)
+            {
+                mock =  new Mock<TService>();
+                InternalServiceCollection.AddSingleton(mock);
+                ReplaceService(mock.Object);
+            }
+            else
+            {
+                mock = service;
+            }
+
+            return this;
+        }
+
+        public SystemUnderTestBase MockService<TService>(Action<Mock<TService>> mockAction) where TService : class
+        {
+            MockService<TService>(out var mock);
+            mockAction(mock);
             return this;
         }
 

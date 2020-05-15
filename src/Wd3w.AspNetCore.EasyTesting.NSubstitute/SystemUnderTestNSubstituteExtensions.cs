@@ -17,9 +17,9 @@ namespace Wd3w.AspNetCore.EasyTesting.NSubstitute
         /// <param name="substitute">substitute</param>
         /// <typeparam name="T">Service type</typeparam>
         /// <returns></returns>
-        public static SystemUnderTest ReplaceWithNSubstitute<T>(this SystemUnderTest sut, out T substitute) where T : class
+        public static SystemUnderTest ReplaceWithSubstitute<T>(this SystemUnderTest sut, out T substitute) where T : class
         {
-            sut.CheckClientIsNotCreated(nameof(ReplaceWithNSubstitute));
+            sut.CheckClientIsNotCreated(nameof(ReplaceWithSubstitute));
             substitute = sut.GetOrAddInternalService(() => Substitute.For<T>());
             sut.ReplaceService(substitute);
             return sut;
@@ -32,9 +32,9 @@ namespace Wd3w.AspNetCore.EasyTesting.NSubstitute
         /// <param name="setup">Setup substitute</param>
         /// <typeparam name="T">Service type</typeparam>
         /// <returns></returns>
-        public static SystemUnderTest ReplaceWithNSubstitute<T>(this SystemUnderTest sut, [NotNull] Action<T> setup) where T : class
+        public static SystemUnderTest ReplaceWithSubstitute<T>(this SystemUnderTest sut, [NotNull] Action<T> setup) where T : class
         {
-            sut.ReplaceWithNSubstitute<T>(out var substitute);
+            sut.ReplaceWithSubstitute<T>(out var substitute);
             setup(substitute);
             return sut;
         }

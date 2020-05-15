@@ -1,3 +1,4 @@
+using System;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
@@ -21,6 +22,11 @@ namespace Wd3w.AspNetCore.EasyTesting
         public static async Task<TResponse> ShouldBeOk<TResponse>(this HttpResponseMessage message)
         {
             return await message.ShouldBeCodeWithBody<TResponse>(HttpStatusCode.OK);
+        }
+
+        public static async Task ShouldBeOk<TResponse>(this HttpResponseMessage message, Action<TResponse> assertion)
+        {
+            assertion(await message.ShouldBeOk<TResponse>());
         }
 
         public static void ShouldBeNoContent(this HttpResponseMessage message)

@@ -39,6 +39,19 @@ namespace Wd3w.AspNetCore.EasyTesting.Test.MockSupports
         }
 
         [Fact]
+        public async Task ReplaceWithNSubstitute_Should_CheckCallGetSampleData_When_ServiceIsReplacedWithSubstitute()
+        {
+            // Given
+            SUT.ReplaceWithSubstitute<ISampleService>(service => service.GetSampleDate().Returns("Mocked Data"));
+
+            // When
+            await SUT.Resource("api/sample/data").GetAsync();
+
+            // Then
+            SUT.GetSubstitute<ISampleService>().Received().GetSampleDate();
+        }
+
+        [Fact]
         public async Task
             ReplaceWithNSubstitute_Should_ReturnSameMockedObject_When_ReplaceWithNSubstituteIsCalledMultipleTimes()
         {

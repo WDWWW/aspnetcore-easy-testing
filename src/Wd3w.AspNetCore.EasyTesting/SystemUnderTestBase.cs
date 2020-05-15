@@ -13,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 [assembly: InternalsVisibleTo("Wd3w.AspNetCore.EasyTesting.NSubstitute")]
 [assembly: InternalsVisibleTo("Wd3w.AspNetCore.EasyTesting.Moq")]
 [assembly: InternalsVisibleTo("Wd3w.AspNetCore.EasyTesting.FakeItEasy")]
+[assembly: InternalsVisibleTo("Wd3w.AspNetCore.EasyTesting.Test")]
 namespace Wd3w.AspNetCore.EasyTesting
 {
     public abstract class SystemUnderTest : IDisposable
@@ -72,10 +73,10 @@ namespace Wd3w.AspNetCore.EasyTesting
             return this;
         }
 
-        internal TService GetOrAddInternalService<TService>(Func<IServiceProvider, TService> factory)
+        internal TService GetOrAddInternalService<TService>(Func<TService> factory) where TService : class
         {
-            InternalServiceCollection.TryAddSingleton(factory);
-            return InternalServiceProvider.GetService<TService>();
+            InternalServiceCollection.TryAddSingleton(factory());
+            return InternalServiceProvider.GetRequiredService<TService>();
         }
 
         public SystemUnderTest SetupFixture<TService>(Func<TService, Task> action)

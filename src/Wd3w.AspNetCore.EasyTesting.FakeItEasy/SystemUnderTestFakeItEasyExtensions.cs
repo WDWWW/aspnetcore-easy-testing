@@ -16,10 +16,10 @@ namespace Wd3w.AspNetCore.EasyTesting.FakeItEasy
         /// <param name="sut"></param>
         /// <typeparam name="TService">Service to fake</typeparam>
         /// <returns></returns>
-        public static SystemUnderTest DummyService<TService>(this SystemUnderTest sut)
+        public static SystemUnderTest DummyService<TService>(this SystemUnderTest sut) where TService : class
         {
             sut.CheckClientIsNotCreated(nameof(FakeService));
-            sut.ReplaceService(sut.GetOrAddInternalService(_ => A.Dummy<TService>()));
+            sut.ReplaceService(sut.GetOrAddInternalService(A.Dummy<TService>));
             return sut;
         }
 
@@ -32,7 +32,7 @@ namespace Wd3w.AspNetCore.EasyTesting.FakeItEasy
         public static TService FakeService<TService>(this SystemUnderTest sut) where TService : class
         {
             sut.CheckClientIsNotCreated(nameof(FakeService));
-            var fake = sut.GetOrAddInternalService(_ => A.Fake<TService>());
+            var fake = sut.GetOrAddInternalService(A.Fake<TService>);
             sut.ReplaceService(fake);
             return fake;
         }

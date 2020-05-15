@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq.Expressions;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
@@ -19,7 +20,7 @@ namespace Wd3w.AspNetCore.EasyTesting.Moq
         public static Mock<TService> MockService<TService>(this SystemUnderTest sut) where TService : class
         {
             sut.CheckClientIsNotCreated(nameof(MockService));
-            var mock = sut.GetOrAddInternalService(_ => new Mock<TService>());
+            var mock = sut.GetOrAddInternalService(() => new Mock<TService>());
             sut.ReplaceService(mock.Object);
             return mock;
         }
@@ -61,7 +62,7 @@ namespace Wd3w.AspNetCore.EasyTesting.Moq
         public static Mock<TService> GetServiceMock<TService>(this SystemUnderTest sut) where TService : class
         {
             return sut.InternalServiceProvider.GetService<Mock<TService>>()
-                ?? throw new InvalidOperationException("Replace service to mock first using ReplaceWithNSubstitute before call UseSubstitute.");
+                ?? throw new InvalidOperationException("Replace service to mock first using ReplaceWithNSubstitute before call this method.");
         }
 
         /// <summary>
@@ -89,6 +90,38 @@ namespace Wd3w.AspNetCore.EasyTesting.Moq
             where TService : class
         {
             useMock(sut.GetServiceMock<TService>());
+            return sut;
+        }
+
+        /// <summary>
+        ///     Verify mock service short method.
+        /// </summary>
+        /// <param name="sut"></param>
+        /// <param name="expression">Expression for verify</param>
+        /// <param name="times">Times for verifying. Default value is AtLeastOnce if the times is not provided.</param>
+        /// <typeparam name="TService">Mocked service type</typeparam>
+        /// <returns></returns>
+        public static SystemUnderTest VerifyCall<TService>(this SystemUnderTest sut,
+            Expression<Action<TService>> expression,
+            Times? times = null)
+            where TService : class
+        {
+            sut.UseServiceMock<TService>(mock => mock.Verify(expression, times ?? Times.AtLeastOnce()));
+            return sut;
+        }
+
+        /// <summary>
+        ///     Verify mock service short method.
+        /// </summary>
+        /// <param name="sut"></param>
+        /// <param name="expression">Expression for verify</param>
+        /// <typeparam name="TService">Mocked service type</typeparam>
+        /// <returns></returns>
+        public static SystemUnderTest VerifyCallOnce<TService>(this SystemUnderTest sut,
+            Expression<Action<TService>> expression)
+            where TService : class
+        {
+            sut.UseServiceMock<TService>(mock => mock.Verify(expression, Times.Once));
             return sut;
         }
     }

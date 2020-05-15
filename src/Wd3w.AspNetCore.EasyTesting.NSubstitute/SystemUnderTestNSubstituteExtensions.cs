@@ -20,7 +20,7 @@ namespace Wd3w.AspNetCore.EasyTesting.NSubstitute
         public static SystemUnderTest ReplaceWithNSubstitute<T>(this SystemUnderTest sut, out T substitute) where T : class
         {
             sut.CheckClientIsNotCreated(nameof(ReplaceWithNSubstitute));
-            substitute = sut.GetOrAddInternalService(_ => Substitute.For<T>());
+            substitute = sut.GetOrAddInternalService(() => Substitute.For<T>());
             sut.ReplaceService(substitute);
             return sut;
         }

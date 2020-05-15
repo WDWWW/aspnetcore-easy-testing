@@ -12,16 +12,6 @@ namespace Wd3w.AspNetCore.EasyTesting.Test.SystemUnderTest
 {
     public class ReplaceServiceTest : EasyTestingTestBase
     {
-        public class FakeSampleService : ISampleService
-        {
-            public string Message { get; set; } = "Fake!";
-
-            public string GetSampleDate()
-            {
-                return Message;
-            }
-        }
-
         public class GuidSampleService : ISampleService
         {
             public string Message { get; set; } = Guid.NewGuid().ToString();

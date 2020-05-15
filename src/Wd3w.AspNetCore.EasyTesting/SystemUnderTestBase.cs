@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -8,11 +9,13 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Moq;
 
+[assembly: InternalsVisibleTo("Wd3w.AspNetCore.EasyTesting.NSubstitute")]
+[assembly: InternalsVisibleTo("Wd3w.AspNetCore.EasyTesting.Moq")]
+[assembly: InternalsVisibleTo("Wd3w.AspNetCore.EasyTesting.FakeItEasy")]
 namespace Wd3w.AspNetCore.EasyTesting
 {
-    public abstract class SystemUnderTestBase : IDisposable
+    public abstract class SystemUnderTest : IDisposable
     {
         private IServiceCollection _serviceCollection;
 
@@ -36,20 +39,20 @@ namespace Wd3w.AspNetCore.EasyTesting
 
         protected event ConfigureWebHostBuilderHandler OnConfigureWebHostBuilder;
 
-        protected void CheckClientIsNotCreated(string methodName)
+        internal void CheckClientIsNotCreated(string methodName)
         {
             if (_serviceProvider != default)
                 throw new InvalidOperationException(
                     $"{methodName}는 CreateClient/CreateHestify CreateClient/CreateHestify 호출 이전에만 사용할 수 있습니다.");
         }
 
-        protected void CheckClientIsCreated(string methodName)
+        internal void CheckClientIsCreated(string methodName)
         {
             if (_serviceProvider == default)
                 throw new InvalidOperationException($"{methodName}는 CreateClient/CreateHestify 생성 이후에만 사용할 수 있습니다.");
         }
 
-        public SystemUnderTestBase ReplaceService<TService, TImplementation>(ServiceLifetime? lifetime = default)
+        public SystemUnderTest ReplaceService<TService, TImplementation>(ServiceLifetime? lifetime = default)
         {
             CheckClientIsNotCreated(nameof(ReplaceService));
             OnConfigureTestServices += services =>
@@ -61,7 +64,7 @@ namespace Wd3w.AspNetCore.EasyTesting
             return this;
         }
 
-        public SystemUnderTestBase ReplaceService<TService>(TService obj)
+        public SystemUnderTest ReplaceService<TService>(TService obj)
         {
             CheckClientIsNotCreated(nameof(ReplaceService));
             OnConfigureTestServices += services =>
@@ -69,33 +72,13 @@ namespace Wd3w.AspNetCore.EasyTesting
             return this;
         }
 
-        public SystemUnderTestBase MockService<TService>(out Mock<TService> mock) where TService : class
+        internal TService GetOrAddInternalService<TService>(Func<IServiceProvider, TService> factory)
         {
-            CheckClientIsNotCreated(nameof(MockService));
-
-            var service = InternalServiceProvider.GetService<Mock<TService>>();
-            if (service == default)
-            {
-                mock =  new Mock<TService>();
-                InternalServiceCollection.AddSingleton(mock);
-                ReplaceService(mock.Object);
-            }
-            else
-            {
-                mock = service;
-            }
-
-            return this;
+            InternalServiceCollection.TryAddSingleton(factory);
+            return InternalServiceProvider.GetService<TService>();
         }
 
-        public SystemUnderTestBase MockService<TService>(Action<Mock<TService>> mockAction) where TService : class
-        {
-            MockService<TService>(out var mock);
-            mockAction(mock);
-            return this;
-        }
-
-        public SystemUnderTestBase SetupFixture<TService>(Func<TService, Task> action)
+        public SystemUnderTest SetupFixture<TService>(Func<TService, Task> action)
         {
             CheckClientIsNotCreated(nameof(SetupFixture));
             OnSetupFixtures += provider => action.Invoke(provider.GetService<TService>());
@@ -194,25 +177,25 @@ namespace Wd3w.AspNetCore.EasyTesting
             return descriptor.Lifetime == lifetime;
         }
 
-        public SystemUnderTestBase SetupWebHostBuilder(Action<IWebHostBuilder> configureAction)
+        public SystemUnderTest SetupWebHostBuilder(Action<IWebHostBuilder> configureAction)
         {
             OnConfigureWebHostBuilder += configureAction.Invoke;
             return this;
         }
 
-        public SystemUnderTestBase UseSetting(string key, string value)
+        public SystemUnderTest UseSetting(string key, string value)
         {
             OnConfigureWebHostBuilder += builder => builder.UseSetting(key, value);
             return this;
         }
 
-        public SystemUnderTestBase ConfigureAppConfiguration(Action<IConfigurationBuilder> configureAction)
+        public SystemUnderTest ConfigureAppConfiguration(Action<IConfigurationBuilder> configureAction)
         {
             OnConfigureWebHostBuilder += builder => builder.ConfigureAppConfiguration(configureAction);
             return this;
         }
 
-        public SystemUnderTestBase ConfigureServices(Action<IServiceCollection> configureServices)
+        public SystemUnderTest ConfigureServices(Action<IServiceCollection> configureServices)
         {
             OnConfigureWebHostBuilder += builder => builder.ConfigureServices(configureServices);
             return this;

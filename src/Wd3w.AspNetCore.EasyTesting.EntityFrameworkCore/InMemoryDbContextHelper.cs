@@ -19,8 +19,8 @@ namespace Wd3w.AspNetCore.EasyTesting.EntityFrameworkCore
                 .Options;
         }
 
-        public static SystemUnderTestBase ReplaceInMemoryDbContext<TDbContext>(
-            this SystemUnderTestBase sut, string databaseName = "in-memory")
+        public static SystemUnderTest ReplaceInMemoryDbContext<TDbContext>(
+            this SystemUnderTest sut, string databaseName = "in-memory")
             where TDbContext : DbContext
         {
             return sut.ReplaceService(CreateInMemoryDbContextOptions(databaseName))

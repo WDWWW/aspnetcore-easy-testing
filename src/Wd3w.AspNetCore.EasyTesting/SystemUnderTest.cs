@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.TestHost;
 
 namespace Wd3w.AspNetCore.EasyTesting
 {
-    public class SystemUnderTest<TStartup> : SystemUnderTestBase where TStartup : class
+    public class SystemUnderTest<TStartup> : SystemUnderTest where TStartup : class
     {
         private readonly WebApplicationFactory<TStartup> _factory;
 

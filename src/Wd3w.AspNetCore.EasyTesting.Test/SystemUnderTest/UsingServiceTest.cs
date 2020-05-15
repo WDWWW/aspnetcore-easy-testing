@@ -1,6 +1,7 @@
 using System;
 using FluentAssertions;
 using Moq;
+using Wd3w.AspNetCore.EasyTesting.Moq;
 using Wd3w.AspNetCore.EasyTesting.SampleApi.Services;
 using Wd3w.AspNetCore.EasyTesting.Test.Common;
 using Xunit;

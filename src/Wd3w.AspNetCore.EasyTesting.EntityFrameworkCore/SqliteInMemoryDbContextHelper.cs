@@ -19,8 +19,8 @@ namespace Wd3w.AspNetCore.EasyTesting.EntityFrameworkCore
                 .Options;
         }
 
-        public static SystemUnderTestBase ReplaceSqliteInMemoryDbContext<TDbContext>(
-            this SystemUnderTestBase sut)
+        public static SystemUnderTest ReplaceSqliteInMemoryDbContext<TDbContext>(
+            this SystemUnderTest sut)
             where TDbContext : DbContext
         {
             return sut.ReplaceService(CreateInMemoryDbContextOptions())

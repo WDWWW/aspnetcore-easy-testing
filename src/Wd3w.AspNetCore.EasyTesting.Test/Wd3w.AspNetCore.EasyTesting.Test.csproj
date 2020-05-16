@@ -17,6 +17,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Wd3w.AspNetCore.EasyTesting.EntityFrameworkCore\Wd3w.AspNetCore.EasyTesting.EntityFrameworkCore.csproj" />
+      <ProjectReference Include="..\Wd3w.AspNetCore.EasyTesting.FakeItEasy\Wd3w.AspNetCore.EasyTesting.FakeItEasy.csproj" />
       <ProjectReference Include="..\Wd3w.AspNetCore.EasyTesting.Hestify\Wd3w.AspNetCore.EasyTesting.Hestify.csproj" />
       <ProjectReference Include="..\Wd3w.AspNetCore.EasyTesting.Moq\Wd3w.AspNetCore.EasyTesting.Moq.csproj" />
       <ProjectReference Include="..\Wd3w.AspNetCore.EasyTesting.NSubstitute\Wd3w.AspNetCore.EasyTesting.NSubstitute.csproj" />

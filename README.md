@@ -4,6 +4,8 @@
 
 ![banner](docs/images/easy-testing-logo.png)
 
+![Build And Test](https://github.com/WDWWW/aspnetcore-easy-testing/workflows/Build%20And%20Test/badge.svg)
+
 ## Features
 
 - Replace InMemoryDb Easily

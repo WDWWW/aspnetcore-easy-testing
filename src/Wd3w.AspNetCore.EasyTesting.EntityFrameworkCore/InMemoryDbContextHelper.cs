@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using Microsoft.EntityFrameworkCore;
 
 namespace Wd3w.AspNetCore.EasyTesting.EntityFrameworkCore
 {
@@ -20,9 +21,10 @@ namespace Wd3w.AspNetCore.EasyTesting.EntityFrameworkCore
         }
 
         public static SystemUnderTest ReplaceInMemoryDbContext<TDbContext>(
-            this SystemUnderTest sut, string databaseName = "in-memory")
+            this SystemUnderTest sut, string databaseName = default)
             where TDbContext : DbContext
         {
+            databaseName ??= Guid.NewGuid().ToString();
             return sut.ReplaceService(CreateInMemoryDbContextOptions(databaseName))
                 .ReplaceService(CreateInMemoryDbContextOptions<TDbContext>(databaseName))
                 .SetupFixture<TDbContext>(async context =>

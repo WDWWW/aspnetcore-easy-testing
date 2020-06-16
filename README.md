@@ -64,6 +64,9 @@ sut.ReplaceInMemoryDbContext<SampleDb>() // Replace your registered both `DbCont
     }); 
 ```
 
+Note that if there are no any specific database name about `ReplaceInMemoryDbContext`, the database name is assigned `Guid.NewGuid().ToString()`
+to prevent fail test when parallel test run environment.   
+
 ### Mock/Fake you owned services!
 
 If you want to replace your own service with mock/fake object. 
@@ -117,9 +120,68 @@ sut.GetSubstitute<ISampleService>().Received().GetSampleDate();
 sut.UseSubstitute<ISampleService>(substitute => substitute.Received().GetSampleDate());
 ```
 
+### Replace Pre-Registered application service with new service.
+
+```csharp
+sut.ReplaceService<ISampleService, FakeSampleServic>();
+sut.ReplaceService<ISampleService>(new FakeSampleService()); // It will be always registered as singleton.
+```
+
+### Use internal service object for verifying test is successfully working.
+
+Use `SystemUnderTest.UsingServiceAsync` or `SystemUnderTest.UsingService` methods for use internal service.
+
+```csharp
+await sut.UsingServiceAsync<ISampleService>(async service => {
+    var updated = await service.GetSameplAsync(OriginalFixtureId);
+    updated.Data.Should().Be("Newer Sample Data");
+});
+```
+
+### Verify lifetime of service registration.
+
+Use `SystemUnderTest.VerifyRegisteredLifeTimeOfService` to verify to register your application service lifetime rightly.
+
+```csharp
+var sut = new SystemUnderTest<Startup>();
+
+sut.VerifyRegisteredLifeTimeOfService<ISampleService>(ServiceLifetime.Scoped);
+```
+
+### Use delegate methods of IWebHostBuilder for customizing by your hand! :wave:
+
+SystemUnderTest provide delegate methods of IWebHostBuilder to allow fully customization of your way. Check out below methods. 
+
+- `SystemUnderTest.ConfigureServices`
+- `SystemUnderTest.ConfigureAppConfiguration`
+- `SystemUnderTest.UseSetting`
+- `SystemUnderTest.SetupWebHostBuilder`
+
+
 ### And more use cases..
 
 Visit this library [test project](src/Wd3w.AspNetCore.EasyTesting.Test). You can see every cases to use this library. 
 
 ## LICENSE
-MIT! 
+
+MIT License
+
+Copyright (c) 2020 WDWWW
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

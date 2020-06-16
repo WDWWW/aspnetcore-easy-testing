@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
     <PropertyGroup>
-        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <PackageId>$(PackageIdBase)</PackageId>
+        <DocumentationFile>bin\Debug\Wd3w.AspNetCore.EasyTesting.xml</DocumentationFile>
     </PropertyGroup>
 
     <ItemGroup>

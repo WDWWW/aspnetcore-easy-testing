@@ -4,6 +4,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Items", "Items", "{08FD3B8A
 ProjectSection(SolutionItems) = preProject
 	..\README.md = ..\README.md
 	.gitignore = .gitignore
+	Directory.Build.props = Directory.Build.props
 EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wd3w.AspNetCore.EasyTesting", "Wd3w.AspNetCore.EasyTesting\Wd3w.AspNetCore.EasyTesting.csproj", "{BF4866CF-ED28-40DA-B79D-FEFF4138A68C}"

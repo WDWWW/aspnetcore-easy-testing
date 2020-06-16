@@ -19,6 +19,12 @@ namespace Wd3w.AspNetCore.EasyTesting.EntityFrameworkCore
                 .Options;
         }
 
+        /// <summary>
+        ///     Replace DbContextOptions for TDbContext to InMemory SqliteDbContextOptions
+        /// </summary>
+        /// <param name="sut">System under test</param>
+        /// <typeparam name="TDbContext">DbContext type</typeparam>
+        /// <returns></returns>
         public static SystemUnderTest ReplaceSqliteInMemoryDbContext<TDbContext>(
             this SystemUnderTest sut)
             where TDbContext : DbContext

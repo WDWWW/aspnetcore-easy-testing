@@ -20,6 +20,13 @@ namespace Wd3w.AspNetCore.EasyTesting.EntityFrameworkCore
                 .Options;
         }
 
+        /// <summary>
+        ///     Replace DbContextOptions and DbContextOptions<TDbContext> to InMemoryDbContextOptions and InMemoryDbContextOptions<TDbContext>
+        /// </summary>
+        /// <param name="sut"></param>
+        /// <param name="databaseName"></param>
+        /// <typeparam name="TDbContext"></typeparam>
+        /// <returns></returns>
         public static SystemUnderTest ReplaceInMemoryDbContext<TDbContext>(
             this SystemUnderTest sut, string databaseName = default)
             where TDbContext : DbContext

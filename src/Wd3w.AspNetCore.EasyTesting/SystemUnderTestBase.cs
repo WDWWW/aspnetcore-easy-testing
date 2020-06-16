@@ -53,6 +53,13 @@ namespace Wd3w.AspNetCore.EasyTesting
                 throw new InvalidOperationException($"{methodName}는 CreateClient/CreateHestify 생성 이후에만 사용할 수 있습니다.");
         }
 
+        /// <summary>
+        ///     Replace pre-registered service with TImplementation type with lifetime parameter.
+        /// </summary>
+        /// <param name="lifetime">If lifetime is null, pre-register service lifetime will be used.</param>
+        /// <typeparam name="TService"></typeparam>
+        /// <typeparam name="TImplementation"></typeparam>
+        /// <returns></returns>
         public SystemUnderTest ReplaceService<TService, TImplementation>(ServiceLifetime? lifetime = default)
         {
             CheckClientIsNotCreated(nameof(ReplaceService));
@@ -65,6 +72,12 @@ namespace Wd3w.AspNetCore.EasyTesting
             return this;
         }
 
+        /// <summary>
+        ///     Replace pre-registered service with parameter object, the obj will register as singleton.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <typeparam name="TService"></typeparam>
+        /// <returns></returns>
         public SystemUnderTest ReplaceService<TService>(TService obj)
         {
             CheckClientIsNotCreated(nameof(ReplaceService));
@@ -79,6 +92,12 @@ namespace Wd3w.AspNetCore.EasyTesting
             return InternalServiceProvider.GetRequiredService<TService>();
         }
 
+        /// <summary>
+        ///     Add fixture setting hook, this hook will be called once after register every system or test services.
+        /// </summary>
+        /// <param name="action"></param>
+        /// <typeparam name="TService"></typeparam>
+        /// <returns></returns>
         public SystemUnderTest SetupFixture<TService>(Func<TService, Task> action)
         {
             CheckClientIsNotCreated(nameof(SetupFixture));
@@ -102,6 +121,12 @@ namespace Wd3w.AspNetCore.EasyTesting
             }
         }
 
+        /// <summary>
+        ///     Use TService object from system service provider.
+        /// </summary>
+        /// <param name="action"></param>
+        /// <typeparam name="TService"></typeparam>
+        /// <returns></returns>
         public async Task UsingServiceAsync<TService>(Func<TService, Task> action)
         {
             CheckClientIsCreated(nameof(UsingServiceAsync));
@@ -111,6 +136,13 @@ namespace Wd3w.AspNetCore.EasyTesting
             }
         }
 
+        /// <summary>
+        ///     Use two service objects from system service provider.
+        /// </summary>
+        /// <param name="action"></param>
+        /// <typeparam name="TService1"></typeparam>
+        /// <typeparam name="TService2"></typeparam>
+        /// <returns></returns>
         public async Task UsingServiceAsync<TService1, TService2>(Func<TService1, TService2, Task> action)
         {
             CheckClientIsCreated(nameof(UsingServiceAsync));
@@ -120,6 +152,14 @@ namespace Wd3w.AspNetCore.EasyTesting
             }
         }
 
+        /// <summary>
+        ///     Use three service objects from system service provider.
+        /// </summary>
+        /// <param name="action"></param>
+        /// <typeparam name="TService1"></typeparam>
+        /// <typeparam name="TService2"></typeparam>
+        /// <typeparam name="TService3"></typeparam>
+        /// <returns></returns>
         public async Task UsingServiceAsync<TService1, TService2, TService3>(
             Func<TService1, TService2, TService3, Task> action)
         {
@@ -131,6 +171,10 @@ namespace Wd3w.AspNetCore.EasyTesting
             }
         }
 
+        /// <summary>
+        ///     Use service provider.
+        /// </summary>
+        /// <param name="action"></param>
         public void UsingService(Action<IServiceProvider> action)
         {
             CheckClientIsCreated(nameof(UsingService));
@@ -140,6 +184,11 @@ namespace Wd3w.AspNetCore.EasyTesting
             }
         }
 
+        /// <summary>
+        ///     Use TService object from system service provider.
+        /// </summary>
+        /// <param name="action"></param>
+        /// <typeparam name="TService"></typeparam>
         public void UsingService<TService>(Action<TService> action)
         {
             CheckClientIsCreated(nameof(UsingService));
@@ -149,6 +198,12 @@ namespace Wd3w.AspNetCore.EasyTesting
             }
         }
 
+        /// <summary>
+        ///     Use two service objects from system service provider.
+        /// </summary>
+        /// <param name="action"></param>
+        /// <typeparam name="TService1"></typeparam>
+        /// <typeparam name="TService2"></typeparam>
         public void UsingService<TService1, TService2>(Action<TService1, TService2> action)
         {
             CheckClientIsCreated(nameof(UsingService));
@@ -158,6 +213,13 @@ namespace Wd3w.AspNetCore.EasyTesting
             }
         }
 
+        /// <summary>
+        ///     Use three service objects from system service provider.
+        /// </summary>
+        /// <param name="action"></param>
+        /// <typeparam name="TService1"></typeparam>
+        /// <typeparam name="TService2"></typeparam>
+        /// <typeparam name="TService3"></typeparam>
         public void UsingService<TService1, TService2, TService3>(Action<TService1, TService2, TService3> action)
         {
             CheckClientIsCreated(nameof(UsingService));
@@ -168,6 +230,13 @@ namespace Wd3w.AspNetCore.EasyTesting
             }
         }
 
+        /// <summary>
+        ///     Verify lifetime of registered services.
+        /// </summary>
+        /// <param name="lifetime"></param>
+        /// <typeparam name="TService"></typeparam>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         public bool VerifyRegisteredLifeTimeOfService<TService>(ServiceLifetime lifetime)
         {
             if (_serviceCollection == default)
@@ -178,24 +247,45 @@ namespace Wd3w.AspNetCore.EasyTesting
             return descriptor.Lifetime == lifetime;
         }
 
+        /// <summary>
+        ///     Setup configure web host builder.
+        /// </summary>
+        /// <param name="configureAction"></param>
+        /// <returns></returns>
         public SystemUnderTest SetupWebHostBuilder(Action<IWebHostBuilder> configureAction)
         {
             OnConfigureWebHostBuilder += configureAction.Invoke;
             return this;
         }
 
+        /// <summary>
+        ///     Add setting for sut
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public SystemUnderTest UseSetting(string key, string value)
         {
             OnConfigureWebHostBuilder += builder => builder.UseSetting(key, value);
             return this;
         }
 
+        /// <summary>
+        ///     Hook for configuring application 
+        /// </summary>
+        /// <param name="configureAction"></param>
+        /// <returns></returns>
         public SystemUnderTest ConfigureAppConfiguration(Action<IConfigurationBuilder> configureAction)
         {
             OnConfigureWebHostBuilder += builder => builder.ConfigureAppConfiguration(configureAction);
             return this;
         }
 
+        /// <summary>
+        ///     Hook for configuring services.
+        /// </summary>
+        /// <param name="configureServices"></param>
+        /// <returns></returns>
         public SystemUnderTest ConfigureServices(Action<IServiceCollection> configureServices)
         {
             OnConfigureWebHostBuilder += builder => builder.ConfigureServices(configureServices);
@@ -219,12 +309,32 @@ namespace Wd3w.AspNetCore.EasyTesting
             });
         }
 
+        /// <summary>
+        ///     Create http client to access system under test.
+        /// </summary>
+        /// <returns>HttpClient</returns>
         public abstract HttpClient CreateClient();
 
+        /// <summary>
+        ///     Create http client to access system under test with options.
+        /// </summary>
+        /// <param name="options">FactoryOptions</param>
+        /// <returns>HttpClient</returns>
         public abstract HttpClient CreateClient(WebApplicationFactoryClientOptions options);
 
+        /// <summary>
+        ///     Create http default client with delegate handlers.
+        /// </summary>
+        /// <param name="handlers"></param>
+        /// <returns></returns>
         public abstract HttpClient CreateDefaultClient(params DelegatingHandler[] handlers);
 
+        /// <summary>
+        ///     Create http default client with uri and delegate handlers.
+        /// </summary>
+        /// <param name="baseAddress"></param>
+        /// <param name="handlers"></param>
+        /// <returns></returns>
         public abstract HttpClient CreateDefaultClient(Uri baseAddress, params DelegatingHandler[] handlers);
 
         public abstract void Dispose();

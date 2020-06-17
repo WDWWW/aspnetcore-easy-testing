@@ -5,6 +5,9 @@
 ![banner](docs/images/easy-testing-logo.png)
 
 ![Build And Test](https://github.com/WDWWW/aspnetcore-easy-testing/workflows/Build%20And%20Test/badge.svg)
+![Nuget](https://img.shields.io/nuget/v/AspNetCore.EasyTesting)
+![Nuget](https://img.shields.io/nuget/dt/AspNetCore.EasyTesting)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/y/wdwww/aspnetcore-easy-testing)
 
 ## Features
 

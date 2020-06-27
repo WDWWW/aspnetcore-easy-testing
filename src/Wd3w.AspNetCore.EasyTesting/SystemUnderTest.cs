@@ -26,22 +26,30 @@ namespace Wd3w.AspNetCore.EasyTesting
 
         public override HttpClient CreateClient()
         {
-            return WithWebHostBuilder().CreateClient();
+            var httpClient = WithWebHostBuilder().CreateClient();
+            ServiceProvider = _factory.Services;
+            return httpClient;
         }
 
         public override  HttpClient CreateClient(WebApplicationFactoryClientOptions options)
         {
-            return WithWebHostBuilder().CreateClient(options);
+            var httpClient = WithWebHostBuilder().CreateClient(options);
+            ServiceProvider = _factory.Services;
+            return httpClient;
         }
 
         public override  HttpClient CreateDefaultClient(params DelegatingHandler[] handlers)
         {
-            return WithWebHostBuilder().CreateDefaultClient(handlers);
+            var defaultClient = WithWebHostBuilder().CreateDefaultClient(handlers);
+            ServiceProvider = _factory.Services;
+            return defaultClient;
         }
 
         public override  HttpClient CreateDefaultClient(Uri baseAddress, params DelegatingHandler[] handlers)
         {
-            return WithWebHostBuilder().CreateDefaultClient(baseAddress, handlers);
+            var defaultClient = WithWebHostBuilder().CreateDefaultClient(baseAddress, handlers);
+            ServiceProvider = _factory.Services;
+            return defaultClient;
         }
 
         private WebApplicationFactory<TStartup> WithWebHostBuilder()

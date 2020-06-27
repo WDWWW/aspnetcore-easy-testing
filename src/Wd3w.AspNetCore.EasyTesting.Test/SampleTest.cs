@@ -1,5 +1,7 @@
 using System.Threading.Tasks;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Wd3w.AspNetCore.EasyTesting.EntityFrameworkCore;
 using Wd3w.AspNetCore.EasyTesting.Hestify;
 using Wd3w.AspNetCore.EasyTesting.Moq;

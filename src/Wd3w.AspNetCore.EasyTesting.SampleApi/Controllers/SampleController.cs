@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Wd3w.AspNetCore.EasyTesting.SampleApi.Models;
@@ -7,7 +8,7 @@ namespace Wd3w.AspNetCore.EasyTesting.SampleApi.Controllers
 {
     [ApiController]
     [Route("api/sample")]
-    public class SampleController
+    public class SampleController : ControllerBase
     {
         private readonly ILogger<SampleController> _logger;
         private readonly ISampleService _service;
@@ -27,6 +28,13 @@ namespace Wd3w.AspNetCore.EasyTesting.SampleApi.Controllers
             {
                 Data = _service.GetSampleDate()
             };
+        }
+
+        [Authorize]
+        [HttpGet("secure")]
+        public ActionResult GetSecureProcess()
+        {
+            return NoContent();
         }
     }
 }

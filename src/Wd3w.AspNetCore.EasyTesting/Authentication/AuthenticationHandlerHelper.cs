@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Linq;
+using System.Security.Claims;
+using System.Security.Principal;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -17,19 +19,99 @@ namespace Wd3w.AspNetCore.EasyTesting.Authentication
                     throw new InvalidOperationException($"There is no registered scheme({schemeName}).");
             };
         }
+
+        public static SystemUnderTest NoUserAuthentication(this SystemUnderTest sut)
+        {
+            return sut.FakeAuthentication(AuthenticateResult.NoResult());
+        }
+
+        public static SystemUnderTest NoUserAuthentication(this SystemUnderTest sut, string scheme)
+        {
+            return sut.FakeAuthentication(scheme, AuthenticateResult.NoResult());
+        }
+
         
+        public static SystemUnderTest DenyAuthentication(this SystemUnderTest sut, string message = "Failed to authentication")
+        {
+            return sut.FakeAuthentication(AuthenticateResult.Fail(message));
+        }
+        
+        public static SystemUnderTest DenyAuthentication(this SystemUnderTest sut, string scheme, string message = "Failed to authentication")
+        {
+            return sut.FakeAuthentication(scheme, AuthenticateResult.Fail(message));
+        }
+        
+        public static SystemUnderTest DenyAuthentication(this SystemUnderTest sut, Exception exception)
+        {
+            return sut.FakeAuthentication(AuthenticateResult.Fail(exception));
+        }
+        
+        public static SystemUnderTest DenyAuthentication(this SystemUnderTest sut, string scheme, Exception exception)
+        {
+            return sut.FakeAuthentication(scheme, AuthenticateResult.Fail(exception));
+        }
+        
+        public static SystemUnderTest AllowAuthentication(this SystemUnderTest sut, params Claim[] identity)
+        {
+            return sut.FakeAuthenticationCore(options => AuthenticateResult.Success(new AuthenticationTicket(new ClaimsPrincipal(new ClaimsIdentity(identity, options.DefaultScheme)), options.DefaultScheme)));
+        }
+
+
+        public static SystemUnderTest AllowAuthentication(this SystemUnderTest sut, IIdentity identity)
+        {
+            CheckClaimsIsAuthenticated(identity);
+            return sut.FakeAuthenticationCore(options => AuthenticateResult.Success(new AuthenticationTicket(new ClaimsPrincipal(identity), options.DefaultScheme)));
+        }
+
+        
+        public static SystemUnderTest AllowAuthentication(this SystemUnderTest sut, ClaimsPrincipal pricipal)
+        {
+            CheckClaimsIsAuthenticated(pricipal.Identity);
+            return sut.FakeAuthenticationCore(options => AuthenticateResult.Success(new AuthenticationTicket(pricipal, options.DefaultScheme)));
+        }
+        
+        public static SystemUnderTest AllowAuthentication(this SystemUnderTest sut, string scheme, params Claim[] identity)
+        {
+            return sut.FakeAuthentication(scheme, AuthenticateResult.Success(new AuthenticationTicket(new ClaimsPrincipal(new ClaimsIdentity(identity, scheme)), scheme)));
+        }
+
+
+        public static SystemUnderTest AllowAuthentication(this SystemUnderTest sut, string scheme, IIdentity identity)
+        {
+            CheckClaimsIsAuthenticated(identity);
+            return sut.FakeAuthentication(scheme, AuthenticateResult.Success(new AuthenticationTicket(new ClaimsPrincipal(identity), scheme)));
+        }
+
+        
+        public static SystemUnderTest AllowAuthentication(this SystemUnderTest sut, string scheme, ClaimsPrincipal pricipal)
+        {
+            CheckClaimsIsAuthenticated(pricipal.Identity);
+            return sut.FakeAuthentication(scheme, AuthenticateResult.Success(new AuthenticationTicket(pricipal, scheme)));
+        }
+
+        private static void CheckClaimsIsAuthenticated(IIdentity identity)
+        {
+            if (!identity.IsAuthenticated)
+                throw new ArgumentException(
+                    "IIdentity.IsAuthenticated should be true. If you create new instance of ClaimsIdentity, you should create instance with AuthenticationType param of constructor.");
+        }
+
+
         public static SystemUnderTest FakeAuthentication(this SystemUnderTest sut,
             string scheme,
             AuthenticateResult result)
         {
-            return sut.FakeAuthentication((options, builder) => builder.Name == scheme, 
-                result, 
+            if (result.Succeeded)
+                CheckClaimsIsAuthenticated(result.Principal.Identity);
+            
+            return sut.FakeAuthenticationCore(scheme, 
+                _ => result, 
                 GenerateSchemeNameValidator(scheme));
         }
 
         public static SystemUnderTest FakeAuthentication(this SystemUnderTest sut, AuthenticateResult result)
         {
-            return sut.FakeAuthentication((options, builder) => options.DefaultScheme == builder.Name, result);
+            return sut.FakeAuthentication(default, result);
         }
 
         public static SystemUnderTest ReplaceAuthenticationHandler<THandler>(this SystemUnderTest sut,
@@ -62,15 +144,37 @@ namespace Wd3w.AspNetCore.EasyTesting.Authentication
                 (_, builder) => new ServiceDescriptor(typeof(THandler), provider => factory(provider), lifetime),
                 validateOptions: GenerateSchemeNameValidator(scheme));
         }
+        
+        internal static SystemUnderTest FakeAuthenticationCore(this SystemUnderTest sut, Func<AuthenticationOptions, AuthenticateResult> resultCreator)
+        {
+            return sut.FakeAuthenticationCore(default,
+                options =>
+                {
+                    var authenticateResult = resultCreator(options);
+                    if (authenticateResult.Succeeded)
+                        CheckClaimsIsAuthenticated(authenticateResult.Principal.Identity);
 
-        internal static SystemUnderTest FakeAuthentication(this SystemUnderTest sut,
-            Func<AuthenticationOptions, AuthenticationSchemeBuilder, bool> schemePicker,
-            AuthenticateResult result, 
+                    return authenticateResult;
+                });
+        }
+
+        /// <summary>
+        ///     Fake authentication core method
+        /// </summary>
+        /// <param name="sut"></param>
+        /// <param name="schemeName"></param>
+        /// <param name="result"></param>
+        /// <param name="validateOptions"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        internal static SystemUnderTest FakeAuthenticationCore(this SystemUnderTest sut,
+            string schemeName,
+            Func<AuthenticationOptions, AuthenticateResult> result, 
             Action<AuthenticationOptions> validateOptions = default)
         {
             static Type MakeFakeHandlerType(AuthenticationSchemeBuilder builder)
             {
-                if (builder.HandlerType.IsGenericType && builder.HandlerType.GetGenericTypeDefinition() == typeof(FakeAuthenticationHandler<>))
+                if (IsFakeAuthenticationHandler(builder.HandlerType))
                     return builder.HandlerType;
                 
                 var baseType = builder
@@ -85,19 +189,22 @@ namespace Wd3w.AspNetCore.EasyTesting.Authentication
                     .First();
                 return typeof(FakeAuthenticationHandler<>).MakeGenericType(options);
             }
+            
             if (sut.ServiceProvider == null)
             {
-                sut.ReplaceAuthenticationHandler(schemePicker, 
+                sut.ReplaceAuthenticationHandler((options, builder) => schemeName != null 
+                        ? builder.Name == schemeName 
+                        : options.DefaultScheme == builder.Name, 
                     (options, builder) =>
                     {
                         var fakeHandler = MakeFakeHandlerType(builder);
                         return new ServiceDescriptor(fakeHandler, fakeHandler, ServiceLifetime.Singleton);
                     }, 
-                    (services, type) =>
+                    (services, type, options) =>
                     {
                         using var buildInstanceProvider = services.BuildServiceProvider();
                         var handler = (IFakeAuthenticationHandler)buildInstanceProvider.GetService(type);
-                        handler.SetResult(result);
+                        handler.SetResult(result(options));
                         services.RemoveAll(type);
                         services.AddSingleton(type, handler);
                     },
@@ -105,26 +212,39 @@ namespace Wd3w.AspNetCore.EasyTesting.Authentication
             }
             else
             {
-                sut.UsingService(provider =>
+                sut.UsingServiceAsync(async provider =>
                 {
-                    var options = provider.GetService<IOptions<AuthenticationOptions>>()?.Value
-                                  ?? throw new InvalidOperationException(
-                                      "Couldn't find AuthenticationOptions from SUT. Please configure your own authentication.");
+                    var authenticationOptions = provider.GetService<IOptions<AuthenticationOptions>>()?.Value;
+                    if (authenticationOptions == null)
+                        throw new InvalidOperationException(
+                            "Couldn't find AuthenticationOptions from SUT. Please configure your own authentication.");
 
-                    var builder = options.Schemes.First(scheme => schemePicker(options, scheme));
-                    var fakeHandlerType = MakeFakeHandlerType(builder);
-                    var fakeHandler = (IFakeAuthenticationHandler) provider.GetService(fakeHandlerType) 
-                                      ?? throw new InvalidOperationException("Couldn't find fake handler. Please call *Authentication before calling Fake/NoUser/Deny/AllowAuthentication");
-                    fakeHandler.SetResult(result);
-                });
+                    validateOptions?.Invoke(authenticationOptions);
+
+                    var schemeProvider = provider.GetRequiredService<IAuthenticationSchemeProvider>();
+                    var schemes = schemeName == default
+                        ? await schemeProvider.GetDefaultAuthenticateSchemeAsync()
+                        : await schemeProvider.GetSchemeAsync(schemeName);
+
+                    if (!IsFakeAuthenticationHandler(schemes.HandlerType))
+                        throw new InvalidOperationException(
+                            "Couldn't find fake handler. Please call *Authentication before calling Fake/NoUser/Deny/AllowAuthentication");
+                    var fakeHandler = (IFakeAuthenticationHandler) provider.GetService(schemes.HandlerType);
+                    fakeHandler.SetResult(result(authenticationOptions));
+                }).Wait();
             }
             return sut;
+        }
+
+        private static bool IsFakeAuthenticationHandler(Type handlerType)
+        {
+            return handlerType.IsGenericType && handlerType.GetGenericTypeDefinition() == typeof(FakeAuthenticationHandler<>);
         }
 
         internal static SystemUnderTest ReplaceAuthenticationHandler(this SystemUnderTest sut, 
             Func<AuthenticationOptions, AuthenticationSchemeBuilder, bool> schemePicker,
             Func<AuthenticationOptions, AuthenticationSchemeBuilder, ServiceDescriptor> handlerType,
-            Action<IServiceCollection, Type> postProcess = default,
+            Action<IServiceCollection, Type, AuthenticationOptions> postProcess = default,
             Action<AuthenticationOptions> validateOptions = default)
         {
             sut.CheckClientIsNotCreated(nameof(ReplaceAuthenticationHandler));
@@ -135,7 +255,19 @@ namespace Wd3w.AspNetCore.EasyTesting.Authentication
                 if (services.All(sd => sd.ServiceType != typeof(IConfigureOptions<AuthenticationOptions>)))
                     throw new InvalidOperationException(
                         "Couldn't find AuthenticationOptions. You should add authentication scheme at least one on your startup class.");
+
+                using var provider = services.BuildServiceProvider();
+                var options = provider.GetService<IOptions<AuthenticationOptions>>().Value;
                 
+                foreach (var builder in options.Schemes)
+                {
+                    if (!schemePicker(options, builder))
+                        continue;
+                    validateOptions?.Invoke(options);
+                    services.RemoveAll(builder.HandlerType);
+                    services.Add(handlerType(options, builder));
+                }
+
                 services.PostConfigure<AuthenticationOptions>(options =>
                 {
                     validateOptions?.Invoke(options);
@@ -143,12 +275,9 @@ namespace Wd3w.AspNetCore.EasyTesting.Authentication
                     {
                         if (!schemePicker(options, builder))
                             continue;
-                    
-                        services.RemoveAll(builder.HandlerType);
-                        var serviceDescriptor = handlerType(options, builder);
-                        builder.HandlerType = serviceDescriptor.ServiceType;
-                        services.Add(serviceDescriptor);
-                        postProcess?.Invoke(services, builder.HandlerType);
+
+                        builder.HandlerType = handlerType(options, builder).ServiceType;
+                        postProcess?.Invoke(services, builder.HandlerType, options);
                     }
                 });
             };

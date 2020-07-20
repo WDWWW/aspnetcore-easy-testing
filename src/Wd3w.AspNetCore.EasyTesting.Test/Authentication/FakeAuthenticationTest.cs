@@ -21,14 +21,14 @@ namespace Wd3w.AspNetCore.EasyTesting.Test.Authentication
             var message = await httpClient.Resource("api/sample/secure").GetAsync();
             
             message.ShouldBe(HttpStatusCode.Unauthorized);
-            //
+
             SUT.FakeAuthentication("Bearer", AuthenticateResult.Success(new AuthenticationTicket(new ClaimsPrincipal(
                 new ClaimsIdentity(new[]
                 {
                     new Claim(ClaimTypes.Email, "test@test.com"),
-                })), "Bearer")));
+                }, "Bearer")), "Bearer")));
             var message2 = await httpClient.Resource("api/sample/secure").GetAsync();
-            message2.ShouldBe(HttpStatusCode.NoContent);
+             message2.ShouldBe(HttpStatusCode.NoContent);
         }
     }
 }

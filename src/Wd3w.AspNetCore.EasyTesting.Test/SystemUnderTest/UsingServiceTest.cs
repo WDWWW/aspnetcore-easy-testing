@@ -14,7 +14,7 @@ namespace Wd3w.AspNetCore.EasyTesting.Test.SystemUnderTest
         public void Should_CallOnceServiceMethod_When_ServiceIsUsedInUsingServiceAsync()
         {
             // Given
-            SUT.MockService<ISampleService>(out var mock)
+            SUT.MockService<ISampleService>(out var mock) 
                 .CreateClient();
 
             // When

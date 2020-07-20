@@ -112,7 +112,7 @@ namespace Wd3w.AspNetCore.EasyTesting
         public async Task UsingServiceAsync(Func<IServiceProvider, Task> action)
         {
             CheckClientIsCreated(nameof(UsingServiceAsync));
-            using (ServiceProvider.CreateScope())
+               using (ServiceProvider.CreateScope() )
             {
                 await action.Invoke(ServiceProvider);
             }

@@ -15,6 +15,7 @@ namespace Wd3w.AspNetCore.EasyTesting.Authentication
         {
             return options =>
             {
+                schemeName ??= options.DefaultScheme;
                 if (!options.Schemes.Select(s => s.Name).Contains(schemeName))
                     throw new InvalidOperationException($"There is no registered scheme({schemeName}).");
             };

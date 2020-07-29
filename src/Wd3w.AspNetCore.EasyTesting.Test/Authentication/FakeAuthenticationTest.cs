@@ -15,7 +15,7 @@ namespace Wd3w.AspNetCore.EasyTesting.Test.Authentication
         public async Task Test()
         {
             var httpClient = SUT
-                .FakeAuthentication("Bearer", AuthenticateResult.NoResult())
+                .NoUserAuthentication("Bearer")
                 .CreateClient();
             
             var message = await httpClient.Resource("api/sample/secure").GetAsync();

@@ -17,6 +17,7 @@
 - Provide build api for writing testing code declarative.
 - Getting/Using service after init the test service.
 - Provide hooks like `SetupFixture`, `Configure*` Methods.
+- Fake Authentication
 
 ## Getting Start!
 
@@ -159,6 +160,41 @@ SystemUnderTest provide delegate methods of IWebHostBuilder to allow fully custo
 - `SystemUnderTest.ConfigureAppConfiguration`
 - `SystemUnderTest.UseSetting`
 - `SystemUnderTest.SetupWebHostBuilder`
+
+
+### Fake authentication layer of ASP.NET Core
+
+We can do fake authentication handler easily through call few method. 
+But It's not recommended for custom complex implementation of authentication process.
+
+```cs
+usnig var sut = new SystemUnderTest<Startup>();
+
+// this replace disable defualt original authentication handler with fake authentication handler  
+var httpClient = sut.NoUserAuthentication()
+    // .AllowAuthentication("Bearer", new ClaimsPrincipal(/* configure test user principal */)) for faking specific authentication scheme.
+    // .DenyAuthentication() for test unauthorized call
+    .CreateClient();
+
+// Now you can call any authorized actions
+```
+
+This library provide you four type methods.
+- `NoUserAuthentication`  : When server couldn't find authentication related parts(Cookie, Token, JWT ... etc) from http call.
+- `DenyAuthentication`    : When server found authentication related parts But it's invalid
+- `AllowAuthentication`   : When server found valid authentication related parts and can make `IPrincipal`
+- `FakeAuthentication`    : What you want, just call this method and provide valid ticket or principal instance.
+
+If you provide `sheme` parameter, it will use `DefaultScheme` that is already configured in `Startup.cs` by your hand. :wave:
+
+```cs
+services.AddAuthentication("Bearer") // "Bearer" scheme is default authentication scheme.
+```
+
+Note that if you want to use your own `IIdentity` when fake authentication handler for some scheme.
+`IIdentity.IsAuthenticated` should return `true`. if it is not, every call is denied by ASP.NET Core authentication middleware. 
+
+
 
 
 ### And more use cases..

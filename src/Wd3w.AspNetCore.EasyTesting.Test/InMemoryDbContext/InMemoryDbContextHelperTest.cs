@@ -60,6 +60,5 @@ namespace Wd3w.AspNetCore.EasyTesting.Test.InMemoryDbContext
                 entities.Should().HaveCount(4);
             });
         }
-
     }
 }

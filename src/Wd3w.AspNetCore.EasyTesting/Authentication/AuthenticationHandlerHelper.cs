@@ -98,6 +98,11 @@ namespace Wd3w.AspNetCore.EasyTesting.Authentication
         }
 
 
+        public static SystemUnderTest FakeAuthentication(this SystemUnderTest sut, AuthenticateResult result)
+        {
+            return sut.FakeAuthentication(default, result);
+        }
+
         public static SystemUnderTest FakeAuthentication(this SystemUnderTest sut,
             string scheme,
             AuthenticateResult result)
@@ -108,11 +113,6 @@ namespace Wd3w.AspNetCore.EasyTesting.Authentication
             return sut.FakeAuthenticationCore(scheme, 
                 _ => result, 
                 GenerateSchemeNameValidator(scheme));
-        }
-
-        public static SystemUnderTest FakeAuthentication(this SystemUnderTest sut, AuthenticateResult result)
-        {
-            return sut.FakeAuthentication(default, result);
         }
 
         public static SystemUnderTest ReplaceAuthenticationHandler<THandler>(this SystemUnderTest sut,

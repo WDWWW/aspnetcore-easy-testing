@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 
 namespace Wd3w.AspNetCore.EasyTesting.EntityFrameworkCore
 {
@@ -8,15 +9,22 @@ namespace Wd3w.AspNetCore.EasyTesting.EntityFrameworkCore
             where TDbContext : DbContext
         {
             return new DbContextOptionsBuilder<TDbContext>()
-                .UseSqlite("DataSource=:memory:")
+                .UseSqlite(CreateInMemoryConnection())
                 .Options;
         }
 
         private static DbContextOptions CreateInMemoryDbContextOptions()
         {
             return new DbContextOptionsBuilder()
-                .UseSqlite("DataSource=:memory:")
+                .UseSqlite(CreateInMemoryConnection())
                 .Options;
+        }
+
+        private static SqliteConnection CreateInMemoryConnection()
+        {
+            var connection = new SqliteConnection("DataSource=:memory:");
+            connection.Open();
+            return connection;
         }
 
         /// <summary>

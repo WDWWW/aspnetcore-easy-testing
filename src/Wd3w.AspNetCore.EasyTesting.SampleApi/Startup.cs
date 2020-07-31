@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Wd3w.AspNetCore.EasyTesting.SampleApi.Entities;
 using Wd3w.AspNetCore.EasyTesting.SampleApi.Services;
+using Wd3w.TokenAuthentication;
 
 namespace Wd3w.AspNetCore.EasyTesting.SampleApi
 {
@@ -17,10 +18,18 @@ namespace Wd3w.AspNetCore.EasyTesting.SampleApi
         {
             services.AddControllers();
             services.AddScoped<ISampleService, SampleService>();
+            services.AddScoped<SampleRepository>();
             services.AddDbContext<SampleDb>();
             services.AddSingleton(new DbContextOptionsBuilder<SampleDb>()
                 .UseNpgsql("Host=my_host;Database=my_db;Username=my_user;Password=my_pw")
                 .Options);
+            
+            services.AddAuthentication("Bearer")
+                .AddTokenAuthenticationScheme<CustomTokenAuthService>("Bearer", new TokenAuthenticationConfiguration
+                {
+                    Realm = "https://www.test.com/sign-in",
+                    TokenLength = 20
+                });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -29,6 +38,7 @@ namespace Wd3w.AspNetCore.EasyTesting.SampleApi
             if (env.IsDevelopment()) app.UseDeveloperExceptionPage();
 
             app.UseRouting();
+            app.UseAuthentication();
             app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {

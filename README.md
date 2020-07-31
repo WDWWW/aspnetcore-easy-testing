@@ -185,7 +185,7 @@ This library provide you four type methods.
 - `AllowAuthentication`   : When server found valid authentication related parts and can make `IPrincipal`
 - `FakeAuthentication`    : What you want, just call this method and provide valid ticket or principal instance.
 
-If you provide `sheme` parameter, it will use `DefaultScheme` that is already configured in `Startup.cs` by your hand. :wave:
+If you don't provide `sheme` parameter, it will use `DefaultScheme` to fake that is already configured in `Startup.cs` by your hand. :wave:
 
 ```cs
 services.AddAuthentication("Bearer") // "Bearer" scheme is default authentication scheme.

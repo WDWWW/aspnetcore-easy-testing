@@ -18,6 +18,7 @@ namespace Wd3w.AspNetCore.EasyTesting.SampleApi
         {
             services.AddControllers();
             services.AddScoped<ISampleService, SampleService>();
+            services.AddScoped<SampleRepository>();
             services.AddDbContext<SampleDb>();
             services.AddSingleton(new DbContextOptionsBuilder<SampleDb>()
                 .UseNpgsql("Host=my_host;Database=my_db;Username=my_user;Password=my_pw")

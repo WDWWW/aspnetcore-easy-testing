@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -12,11 +13,13 @@ namespace Wd3w.AspNetCore.EasyTesting.SampleApi.Controllers
     {
         private readonly ILogger<SampleController> _logger;
         private readonly ISampleService _service;
+        private readonly SampleRepository _repository;
 
-        public SampleController(ILogger<SampleController> logger, ISampleService service)
+        public SampleController(ILogger<SampleController> logger, ISampleService service, SampleRepository repository)
         {
             _logger = logger;
             _service = service;
+            _repository = repository;
         }
 
 
@@ -28,6 +31,12 @@ namespace Wd3w.AspNetCore.EasyTesting.SampleApi.Controllers
             {
                 Data = _service.GetSampleDate()
             };
+        }
+
+        [HttpGet("sample-data-from-db")]
+        public async Task<ActionResult> GetRepositorySamplesAsync()
+        {
+            return Ok(await _repository.GetSamplesAsync());
         }
 
         [Authorize]

@@ -26,39 +26,36 @@ namespace Wd3w.AspNetCore.EasyTesting
 
         public override HttpClient CreateClient()
         {
-            var builder = WithWebHostBuilder();
-            var httpClient = builder.CreateClient();
-            ServiceProvider = builder.Services;
-            return httpClient;
+            return WithWebHostBuilder(builder => builder.CreateClient());
         }
 
         public override  HttpClient CreateClient(WebApplicationFactoryClientOptions options)
         {
-            var builder = WithWebHostBuilder();
-            var httpClient = builder.CreateClient(options);
-            ServiceProvider = builder.Services;
-            return httpClient;
+            return WithWebHostBuilder(builder => builder.CreateClient(options));
         }
 
         public override  HttpClient CreateDefaultClient(params DelegatingHandler[] handlers)
         {
-            var builder = WithWebHostBuilder();
-            var defaultClient = builder.CreateDefaultClient(handlers);
-            ServiceProvider = builder.Services;
-            return defaultClient;
+            return WithWebHostBuilder(builder => builder.CreateDefaultClient(handlers));
         }
 
         public override  HttpClient CreateDefaultClient(Uri baseAddress, params DelegatingHandler[] handlers)
         {
-            var builder = WithWebHostBuilder();
-            var defaultClient = builder.CreateDefaultClient(baseAddress, handlers);
-            ServiceProvider = builder.Services;
-            return defaultClient;
+            return WithWebHostBuilder(builder => builder.CreateDefaultClient(baseAddress, handlers));
         }
-
+        
         private WebApplicationFactory<TStartup> WithWebHostBuilder()
         {
             return _factory.WithWebHostBuilder(ConfigureWebHostBuilder);
+        }
+
+        private HttpClient WithWebHostBuilder(Func<WebApplicationFactory<TStartup>, HttpClient> createClient)
+        {
+            var builder = WithWebHostBuilder();
+            var httpClient = createClient(builder);
+            ServiceProvider = builder.Services;
+            ExecuteSetupFixture();
+            return httpClient;
         }
     }
 }

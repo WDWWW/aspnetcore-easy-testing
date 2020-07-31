@@ -23,7 +23,7 @@ namespace Wd3w.AspNetCore.EasyTesting.Test.InMemoryDbContext
                     });
                     await db.SaveChangesAsync();
                 });
-
+            
             // When
             SUT.CreateClient();
 

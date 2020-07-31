@@ -112,10 +112,8 @@ namespace Wd3w.AspNetCore.EasyTesting
         public async Task UsingServiceAsync(Func<IServiceProvider, Task> action)
         {
             CheckClientIsCreated(nameof(UsingServiceAsync));
-               using (ServiceProvider.CreateScope() )
-            {
-                await action.Invoke(ServiceProvider);
-            }
+            using var scope = ServiceProvider.CreateScope();
+            await action.Invoke(scope.ServiceProvider);
         }
 
         /// <summary>
@@ -127,10 +125,8 @@ namespace Wd3w.AspNetCore.EasyTesting
         public async Task UsingServiceAsync<TService>(Func<TService, Task> action)
         {
             CheckClientIsCreated(nameof(UsingServiceAsync));
-            using (ServiceProvider.CreateScope())
-            {
-                await action.Invoke(ServiceProvider.GetService<TService>());
-            }
+            using var scope = ServiceProvider.CreateScope();
+            await action.Invoke(scope.ServiceProvider.GetService<TService>());
         }
 
         /// <summary>
@@ -143,10 +139,8 @@ namespace Wd3w.AspNetCore.EasyTesting
         public async Task UsingServiceAsync<TService1, TService2>(Func<TService1, TService2, Task> action)
         {
             CheckClientIsCreated(nameof(UsingServiceAsync));
-            using (ServiceProvider.CreateScope())
-            {
-                await action.Invoke(ServiceProvider.GetService<TService1>(), ServiceProvider.GetService<TService2>());
-            }
+            using var scope = ServiceProvider.CreateScope();
+            await action.Invoke(scope.ServiceProvider.GetService<TService1>(), scope.ServiceProvider.GetService<TService2>());
         }
 
         /// <summary>
@@ -161,11 +155,9 @@ namespace Wd3w.AspNetCore.EasyTesting
             Func<TService1, TService2, TService3, Task> action)
         {
             CheckClientIsCreated(nameof(UsingServiceAsync));
-            using (ServiceProvider.CreateScope())
-            {
-                await action.Invoke(ServiceProvider.GetService<TService1>(), ServiceProvider.GetService<TService2>(),
-                    ServiceProvider.GetService<TService3>());
-            }
+            using var scope = ServiceProvider.CreateScope();
+            var provider = scope.ServiceProvider;
+            await action.Invoke(provider.GetService<TService1>(), provider.GetService<TService2>(), provider.GetService<TService3>());
         }
 
         /// <summary>
@@ -175,10 +167,8 @@ namespace Wd3w.AspNetCore.EasyTesting
         public void UsingService(Action<IServiceProvider> action)
         {
             CheckClientIsCreated(nameof(UsingService));
-            using (ServiceProvider.CreateScope())
-            {
-                action.Invoke(ServiceProvider);
-            }
+            using var scope = ServiceProvider.CreateScope();
+            action.Invoke(scope.ServiceProvider);
         }
 
         /// <summary>
@@ -189,10 +179,8 @@ namespace Wd3w.AspNetCore.EasyTesting
         public void UsingService<TService>(Action<TService> action)
         {
             CheckClientIsCreated(nameof(UsingService));
-            using (ServiceProvider.CreateScope())
-            {
-                action.Invoke(ServiceProvider.GetService<TService>());
-            }
+            using var scope = ServiceProvider.CreateScope();
+            action.Invoke(scope.ServiceProvider.GetService<TService>());
         }
 
         /// <summary>
@@ -204,10 +192,9 @@ namespace Wd3w.AspNetCore.EasyTesting
         public void UsingService<TService1, TService2>(Action<TService1, TService2> action)
         {
             CheckClientIsCreated(nameof(UsingService));
-            using (ServiceProvider.CreateScope())
-            {
-                action.Invoke(ServiceProvider.GetService<TService1>(), ServiceProvider.GetService<TService2>());
-            }
+            using var scope = ServiceProvider.CreateScope();
+            var provider = scope.ServiceProvider;
+            action.Invoke(provider.GetService<TService1>(), provider.GetService<TService2>());
         }
 
         /// <summary>
@@ -220,11 +207,10 @@ namespace Wd3w.AspNetCore.EasyTesting
         public void UsingService<TService1, TService2, TService3>(Action<TService1, TService2, TService3> action)
         {
             CheckClientIsCreated(nameof(UsingService));
-            using (ServiceProvider.CreateScope())
-            {
-                action.Invoke(ServiceProvider.GetService<TService1>(), ServiceProvider.GetService<TService2>(),
-                    ServiceProvider.GetService<TService3>());
-            }
+            using var scope = ServiceProvider.CreateScope();
+            var provider = scope.ServiceProvider;
+            action.Invoke(provider.GetService<TService1>(), ServiceProvider.GetService<TService2>(),
+                ServiceProvider.GetService<TService3>());
         }
 
         /// <summary>
@@ -296,12 +282,13 @@ namespace Wd3w.AspNetCore.EasyTesting
             {
                 OnConfigureTestServices?.Invoke(services);
                 _serviceCollection = services;
-                var provider = services.BuildServiceProvider();
-                using (provider.CreateScope())
-                {
-                    OnSetupFixtures?.Invoke(provider).Wait();
-                }
             });
+        }
+
+        internal void ExecuteSetupFixture()
+        {
+            using var scope = ServiceProvider.CreateScope();
+            OnSetupFixtures?.Invoke(scope.ServiceProvider).Wait();
         }
 
         /// <summary>

@@ -24,6 +24,3 @@ jobs:
     - name: Deploy nuget package to nuget
       run: dotnet nuget push *\bin\**\*.nupkg -k ${{ secrets.NUGETAPIKEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
       working-directory: src
-    - name: Deploy symbols to nuget
-      run: dotnet nuget push *\bin\**\*.snupkg -k ${{ secrets.NUGETAPIKEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
-      working-directory: src

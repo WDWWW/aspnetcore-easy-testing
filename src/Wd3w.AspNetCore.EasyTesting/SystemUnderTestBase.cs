@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Hosting.Internal;
 using Wd3w.AspNetCore.EasyTesting.Internal;
 
 [assembly: InternalsVisibleTo("Wd3w.AspNetCore.EasyTesting.NSubstitute")]
@@ -241,6 +243,47 @@ namespace Wd3w.AspNetCore.EasyTesting
             return this;
         }
 
+        /// <summary>
+        ///     UseEnvironment delegate method.
+        /// </summary>
+        /// <param name="environment">Specific environment for starting host</param>
+        /// <returns></returns>
+        public SystemUnderTest UseEnvironment(string environment)
+        {
+            OnConfigureWebHostBuilder += builder => builder.UseEnvironment(environment);
+            return this;
+        }
+
+        /// <summary>
+        ///     Use Production environment when host is started.
+        /// </summary>
+        /// <returns></returns>
+        public SystemUnderTest UseProductionEnvironment()
+        {
+            OnConfigureWebHostBuilder += builder => builder.UseEnvironment(Environments.Production);
+            return this;
+        }
+        
+        /// <summary>
+        ///     Use Staging environment when host is started.
+        /// </summary>
+        /// <returns></returns>
+        public SystemUnderTest UseStagingEnvironment()
+        {
+            OnConfigureWebHostBuilder += builder => builder.UseEnvironment(Environments.Staging);
+            return this;
+        }
+
+        /// <summary>
+        ///     Use Development environment when host is started.
+        /// </summary>
+        /// <returns></returns>
+        public SystemUnderTest UseDevelopmentEnvironment()
+        {
+            OnConfigureWebHostBuilder += builder => builder.UseEnvironment(Environments.Development);
+            return this;
+        }
+        
         /// <summary>
         ///     Add setting for sut
         /// </summary>

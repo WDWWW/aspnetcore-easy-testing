@@ -13,6 +13,7 @@
 
 - Replace InMemoryDb Easily
 - Replace internal service to your own object.
+- Change ASP.NET Core host environment value(like `Development`, `Production`) 
 - Mock/Fake internal service using by Moq, FakeItEasy, NSubstitute
 - Provide build api for writing testing code declarative.
 - Getting/Using service after init the test service.
@@ -142,6 +143,7 @@ await sut.UsingServiceAsync<ISampleService>(async service => {
 });
 ```
 
+
 ### Verify lifetime of service registration.
 
 Use `SystemUnderTest.VerifyRegisteredLifeTimeOfService` to verify to register your application service lifetime rightly.
@@ -151,6 +153,19 @@ var sut = new SystemUnderTest<Startup>();
 
 sut.VerifyRegisteredLifeTimeOfService<ISampleService>(ServiceLifetime.Scoped);
 ```
+
+### Change host environment value
+
+``` cs
+var client = new SystemUnderTest<Startup>()
+    .UseProcutionEnvironment()
+    .CreateClient();
+```
+
+- `UseEnvironment`
+- `UseDevelopmentEnvironment`
+- `UseStagingEnvironment`
+- `UseProductionEnvironment`
 
 ### Use delegate methods of IWebHostBuilder for customizing by your hand! :wave:
 

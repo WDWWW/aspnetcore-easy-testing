@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Wd3w.AspNetCore.EasyTesting.SampleApi.Models;
 using Wd3w.AspNetCore.EasyTesting.SampleApi.Services;
@@ -14,12 +15,14 @@ namespace Wd3w.AspNetCore.EasyTesting.SampleApi.Controllers
         private readonly ILogger<SampleController> _logger;
         private readonly ISampleService _service;
         private readonly SampleRepository _repository;
+        private readonly IHostEnvironment _environment;
 
-        public SampleController(ILogger<SampleController> logger, ISampleService service, SampleRepository repository)
+        public SampleController(ILogger<SampleController> logger, ISampleService service, SampleRepository repository, IHostEnvironment environment)
         {
             _logger = logger;
             _service = service;
             _repository = repository;
+            _environment = environment;
         }
 
 
@@ -44,6 +47,12 @@ namespace Wd3w.AspNetCore.EasyTesting.SampleApi.Controllers
         public ActionResult GetSecureProcess()
         {
             return NoContent();
+        }
+
+        [HttpGet("environment")]
+        public string GetEnvironment()
+        {
+            return _environment.EnvironmentName;
         }
     }
 }

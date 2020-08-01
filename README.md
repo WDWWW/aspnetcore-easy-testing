@@ -158,7 +158,7 @@ sut.VerifyRegisteredLifeTimeOfService<ISampleService>(ServiceLifetime.Scoped);
 
 ``` cs
 var client = new SystemUnderTest<Startup>()
-    .UseProcutionEnvironment()
+    .UseProductionEnvironment()
     .CreateClient();
 ```
 

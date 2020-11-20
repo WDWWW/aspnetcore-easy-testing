@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <PackageId>$(PackageIdBase).Grpc</PackageId>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Wd3w.AspNetCore.EasyTesting\Wd3w.AspNetCore.EasyTesting.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Grpc.AspNetCore" Version="2.25.0" />
+    </ItemGroup>
+
+
+</Project>

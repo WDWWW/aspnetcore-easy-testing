@@ -209,7 +209,25 @@ services.AddAuthentication("Bearer") // "Bearer" scheme is default authenticatio
 Note that if you want to use your own `IIdentity` when fake authentication handler for some scheme.
 `IIdentity.IsAuthenticated` should return `true`. if it is not, every call is denied by ASP.NET Core authentication middleware. 
 
+### Support GRPC Client
 
+This is just simple grpc support for creating grpc client easily.
+
+```sh
+dotnet add package AspNetCore.EasyTesting.Grpc 
+```
+
+
+- `CreateGrpcChannel`   : create grpc channel for creating grpc client.
+- `CreateGrpcClient<T>` : `T` is generated grpc client by protoc.
+
+```csharp
+usign var client = new SystemUnderTest<Startup>()
+    .UseProductionEnvironment()
+    .CreateGrpcClient<SomeServiceClient>();
+
+await client.DoSomethingAsync(new { Property = 1 });
+```
 
 
 ### And more use cases..

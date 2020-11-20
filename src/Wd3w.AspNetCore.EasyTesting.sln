@@ -24,6 +24,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wd3w.AspNetCore.EasyTesting
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wd3w.AspNetCore.EasyTesting.FakeItEasy", "Wd3w.AspNetCore.EasyTesting.FakeItEasy\Wd3w.AspNetCore.EasyTesting.FakeItEasy.csproj", "{3979FC93-1A3F-47A8-AA90-AA0874541E6D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wd3w.AspNetCore.EasyTesting.Grpc", "Wd3w.AspNetCore.EasyTesting.Grpc\Wd3w.AspNetCore.EasyTesting.Grpc.csproj", "{8D88D659-8A11-40E3-A92B-1AC867740D1A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -62,5 +64,9 @@ Global
 		{3979FC93-1A3F-47A8-AA90-AA0874541E6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3979FC93-1A3F-47A8-AA90-AA0874541E6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3979FC93-1A3F-47A8-AA90-AA0874541E6D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8D88D659-8A11-40E3-A92B-1AC867740D1A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D88D659-8A11-40E3-A92B-1AC867740D1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D88D659-8A11-40E3-A92B-1AC867740D1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D88D659-8A11-40E3-A92B-1AC867740D1A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

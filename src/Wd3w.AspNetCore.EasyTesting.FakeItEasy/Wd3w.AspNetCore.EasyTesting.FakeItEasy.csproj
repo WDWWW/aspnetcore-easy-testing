@@ -10,7 +10,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="FakeItEasy" Version="6.0.1" />
+      <PackageReference Include="FakeItEasy" Version="6.0.0" />
     </ItemGroup>
 
 </Project>

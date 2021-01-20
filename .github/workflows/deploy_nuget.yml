@@ -22,5 +22,5 @@ jobs:
       run: dotnet build --no-restore
       working-directory: src
     - name: Deploy nuget package to nuget
-      run: dotnet nuget push *\bin\**\*.nupkg -k ${{ secrets.NUGETAPIKEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
+      run: dotnet nuget push *\bin\**\*.nupkg -k ${{ secrets.WD3W_NUGET_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
       working-directory: src

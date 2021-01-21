@@ -3,20 +3,24 @@ using System.Linq;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Hosting.Internal;
+using Microsoft.Extensions.Options;
 using Wd3w.AspNetCore.EasyTesting.Internal;
 
 [assembly: InternalsVisibleTo("Wd3w.AspNetCore.EasyTesting.NSubstitute")]
 [assembly: InternalsVisibleTo("Wd3w.AspNetCore.EasyTesting.Moq")]
 [assembly: InternalsVisibleTo("Wd3w.AspNetCore.EasyTesting.FakeItEasy")]
 [assembly: InternalsVisibleTo("Wd3w.AspNetCore.EasyTesting.Test")]
+
 namespace Wd3w.AspNetCore.EasyTesting
 {
     public abstract class SystemUnderTest : IDisposable
@@ -29,11 +33,7 @@ namespace Wd3w.AspNetCore.EasyTesting
 
         internal IServiceProvider InternalServiceProvider => InternalServiceCollection.BuildServiceProvider();
 
-        internal delegate void ConfigureTestServiceHandler(IServiceCollection services);
-
-        internal delegate Task SetupFixtureHandler(IServiceProvider provider);
-
-        internal delegate void ConfigureWebHostBuilderHandler(IWebHostBuilder builder);
+        public abstract void Dispose();
 
         internal event SetupFixtureHandler OnSetupFixtures;
 
@@ -74,6 +74,18 @@ namespace Wd3w.AspNetCore.EasyTesting
         }
 
         /// <summary>
+        ///     Replace distributed cache to in-memory cache for testing.
+        /// </summary>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        public SystemUnderTest ReplaceDistributedInMemoryCache(MemoryDistributedCacheOptions options = default)
+        {
+            ReplaceService<IDistributedCache>(new MemoryDistributedCache(
+                new OptionsWrapper<MemoryDistributedCacheOptions>(options ?? new MemoryDistributedCacheOptions())));
+            return this;
+        }
+
+        /// <summary>
         ///     Replace pre-registered service with parameter object, the obj will register as singleton.
         /// </summary>
         /// <param name="obj"></param>
@@ -82,8 +94,7 @@ namespace Wd3w.AspNetCore.EasyTesting
         public SystemUnderTest ReplaceService<TService>(TService obj)
         {
             CheckClientIsNotCreated(nameof(ReplaceService));
-            OnConfigureTestServices += services =>
-                services.Replace(new ServiceDescriptor(typeof(TService), _ => obj, ServiceLifetime.Singleton));
+            OnConfigureTestServices += services => services.Replace(new ServiceDescriptor(typeof(TService), obj));
             return this;
         }
 
@@ -142,7 +153,8 @@ namespace Wd3w.AspNetCore.EasyTesting
         {
             CheckClientIsCreated(nameof(UsingServiceAsync));
             using var scope = ServiceProvider.CreateScope();
-            await action.Invoke(scope.ServiceProvider.GetService<TService1>(), scope.ServiceProvider.GetService<TService2>());
+            await action.Invoke(scope.ServiceProvider.GetService<TService1>(),
+                scope.ServiceProvider.GetService<TService2>());
         }
 
         /// <summary>
@@ -159,7 +171,8 @@ namespace Wd3w.AspNetCore.EasyTesting
             CheckClientIsCreated(nameof(UsingServiceAsync));
             using var scope = ServiceProvider.CreateScope();
             var provider = scope.ServiceProvider;
-            await action.Invoke(provider.GetService<TService1>(), provider.GetService<TService2>(), provider.GetService<TService3>());
+            await action.Invoke(provider.GetService<TService1>(), provider.GetService<TService2>(),
+                provider.GetService<TService3>());
         }
 
         /// <summary>
@@ -216,20 +229,60 @@ namespace Wd3w.AspNetCore.EasyTesting
         }
 
         /// <summary>
-        ///     Verify lifetime of registered services.
+        ///     Verify lifetime of registered service.
         /// </summary>
         /// <param name="lifetime"></param>
         /// <typeparam name="TService"></typeparam>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public bool VerifyRegisteredLifeTimeOfService<TService>(ServiceLifetime lifetime)
+        public void VerifyRegisteredLifeTimeOfService<TService>(ServiceLifetime lifetime)
+        {
+            CheckServiceCollectionAllocated();
+            FindServiceDescriptor<TService>().Lifetime.Should().Be(lifetime);
+        }
+
+        /// <summary>
+        ///     Verify implementation type of registered service.
+        /// </summary>
+        /// <typeparam name="TService"></typeparam>
+        /// <typeparam name="TImplementation"></typeparam>
+        public void VerifyRegisteredImplementationTypeOfService<TService, TImplementation>()
+        {
+            CheckServiceCollectionAllocated();
+            GetImplementationType(FindServiceDescriptor<TService>()).Should().Be(typeof(TImplementation));
+        }
+
+        private ServiceDescriptor FindServiceDescriptor<TService>()
+        {
+            return _serviceCollection.FirstOrDefault(d => d.ServiceType == typeof(TService))
+                   ?? throw new InvalidOperationException(
+                       "The provided service type is not registered from SUT service collection.");
+        }
+
+        private Type GetImplementationType(ServiceDescriptor descriptor)
+        {
+            if (descriptor.ImplementationType != default)
+                return descriptor.ImplementationType;
+            
+            if (descriptor.ImplementationInstance != default)
+                return descriptor.ImplementationInstance.GetType();
+
+
+            using var provider = _serviceCollection.BuildServiceProvider();
+            using var serviceScope = provider.CreateScope();
+            var implementationTypeObject = serviceScope.ServiceProvider.GetService(descriptor.ServiceType);
+            if (implementationTypeObject == null)
+                throw new InvalidOperationException(
+                    "Can not get type of service type from implementation factory of service descriptor in service collection.");
+
+            return implementationTypeObject.GetType();
+        }
+
+        private void CheckServiceCollectionAllocated()
         {
             if (_serviceCollection == default)
-                throw new InvalidOperationException("Should create client before verify service's registered lifetime.");
-            var descriptor = _serviceCollection.FirstOrDefault(d => d.ServiceType == typeof(TService))
-                ?? throw new InvalidOperationException("The provided service type is not registered from SUT service collection.");
-
-            return descriptor.Lifetime == lifetime;
+                throw new InvalidOperationException(
+                    "Should create client before verify service's registered lifetime.");
         }
 
         /// <summary>
@@ -263,7 +316,7 @@ namespace Wd3w.AspNetCore.EasyTesting
             OnConfigureWebHostBuilder += builder => builder.UseEnvironment(Environments.Production);
             return this;
         }
-        
+
         /// <summary>
         ///     Use Staging environment when host is started.
         /// </summary>
@@ -283,7 +336,7 @@ namespace Wd3w.AspNetCore.EasyTesting
             OnConfigureWebHostBuilder += builder => builder.UseEnvironment(Environments.Development);
             return this;
         }
-        
+
         /// <summary>
         ///     Add setting for sut
         /// </summary>
@@ -297,7 +350,7 @@ namespace Wd3w.AspNetCore.EasyTesting
         }
 
         /// <summary>
-        ///     Hook for configuring application 
+        ///     Hook for configuring application
         /// </summary>
         /// <param name="configureAction"></param>
         /// <returns></returns>
@@ -362,6 +415,10 @@ namespace Wd3w.AspNetCore.EasyTesting
         /// <returns></returns>
         public abstract HttpClient CreateDefaultClient(Uri baseAddress, params DelegatingHandler[] handlers);
 
-        public abstract void Dispose();
+        internal delegate void ConfigureTestServiceHandler(IServiceCollection services);
+
+        internal delegate Task SetupFixtureHandler(IServiceProvider provider);
+
+        internal delegate void ConfigureWebHostBuilderHandler(IWebHostBuilder builder);
     }
 }

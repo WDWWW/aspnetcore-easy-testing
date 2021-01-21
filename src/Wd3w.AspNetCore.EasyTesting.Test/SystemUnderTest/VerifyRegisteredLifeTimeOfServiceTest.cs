@@ -13,27 +13,24 @@ namespace Wd3w.AspNetCore.EasyTesting.Test.SystemUnderTest
         public void Should_ReturnTrue_When_SampleServiceIsRegisteredAsScoped()
         {
             // Given
-            SUT.CreateClient();
-
             // When
-            var result = SUT.VerifyRegisteredLifeTimeOfService<ISampleService>(ServiceLifetime.Scoped);
-
+            SUT.CreateClient();
+            
             // Then
-            result.Should().BeTrue();
+            SUT.VerifyRegisteredLifeTimeOfService<ISampleService>(ServiceLifetime.Scoped);
         }
 
         [Fact]
         public void Should_ReturnTrue_When_SampleServiceIsRegistredSingleTonAndReplaceServiceWithSingleton()
         {
             // Given
-            SUT.ReplaceService<ISampleService>(new SampleService())
-                .CreateClient();
+            SUT.ReplaceService<ISampleService>(new SampleService());
 
             // When
-            var result = SUT.VerifyRegisteredLifeTimeOfService<ISampleService>(ServiceLifetime.Singleton);
-
+            SUT.CreateClient();
+            
             // Then
-            result.Should().BeTrue();
+            SUT.VerifyRegisteredLifeTimeOfService<ISampleService>(ServiceLifetime.Singleton);
         }
 
         [Fact]

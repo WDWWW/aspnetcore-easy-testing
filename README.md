@@ -60,7 +60,7 @@ Just add package and call `ReplaceInMemoryDbContext<TDbContext>` or `ReplaceSqli
 dotnet add package AspNetCore.EasyTesting.EntityFrameworkCore 
 ```
 
-```sh
+```cs
 sut.ReplaceInMemoryDbContext<SampleDb>() // Replace your registered both `DbContextOptions<TDbContext>` and `DbContextOptions`
     .SetupFixture<SampleDb>(async db =>
     {
@@ -71,6 +71,17 @@ sut.ReplaceInMemoryDbContext<SampleDb>() // Replace your registered both `DbCont
 
 Note that if there are no any specific database name about `ReplaceInMemoryDbContext`, the database name is assigned `Guid.NewGuid().ToString()`
 to prevent fail test when parallel test run environment.   
+
+### Replace to use MemoryCache for IDistributed type.
+
+Use `ReplaceDistributedInMemoryCache` If you want to replace distributed cache with memory cache
+
+```cs
+sut.ReplaceDistributedInMemoryCache()
+    .CreateClient();
+```
+
+
 
 ### Mock/Fake you owned services!
 
@@ -153,6 +164,24 @@ var sut = new SystemUnderTest<Startup>();
 
 sut.VerifyRegisteredLifeTimeOfService<ISampleService>(ServiceLifetime.Scoped);
 ```
+
+### Verify implementation type registration about service type
+
+Use `VerifyRegisteredImplementationTypeOfService` to verify implementation type registration for service type
+when you have conditional service registration logic on startup class. 
+
+```csharp 
+// Given
+var sut = new SystemUnderTest<Startup>();
+sut.UseProductionEnvironment();
+
+// When
+sut.CreateClient();
+
+// Then
+sut.VerifyRegisteredImplementationTypeOfService<ISampleService, ProductionSampleService>();
+```
+
 
 ### Change host environment value
 
@@ -238,7 +267,7 @@ Visit this library [test project](src/Wd3w.AspNetCore.EasyTesting.Test). You can
 
 MIT License
 
-Copyright (c) 2020 WDWWW
+Copyright (c) 2021 WDWWW
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

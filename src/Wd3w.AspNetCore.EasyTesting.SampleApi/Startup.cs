@@ -20,6 +20,11 @@ namespace Wd3w.AspNetCore.EasyTesting.SampleApi
             services.AddScoped<ISampleService, SampleService>();
             services.AddScoped<SampleRepository>();
             services.AddDbContext<SampleDb>();
+            services.AddDistributedRedisCache(options =>
+            {
+                options.InstanceName = "test-redis";
+                options.Configuration = "host=127.0.0.1";
+            });
             services.AddSingleton(new DbContextOptionsBuilder<SampleDb>()
                 .UseNpgsql("Host=my_host;Database=my_db;Username=my_user;Password=my_pw")
                 .Options);

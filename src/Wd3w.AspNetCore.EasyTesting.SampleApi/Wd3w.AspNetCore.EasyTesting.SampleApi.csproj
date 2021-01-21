@@ -10,6 +10,7 @@
       <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="$(EntityFrameworkVersion)" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="$(EntityFrameworkVersion)" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="$(EntityFrameworkVersion)" />
+      <PackageReference Include="Microsoft.Extensions.Caching.Redis" Version="2.2.0" />
       <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="$(EntityFrameworkVersion)" />
       <PackageReference Include="Wd3w.AspNetCore.Permission" Version="3.1.1" />
       <PackageReference Include="Wd3w.AspNetCore.TokenAuthentication" Version="3.1.1" />

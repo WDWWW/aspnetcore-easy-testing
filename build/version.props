@@ -1,6 +1,5 @@
 <Project>
     <PropertyGroup>
-        <!--Release TriggerPLZZZ!!!!-->
-        <Version>5.0.0</Version>
+        <Version>5.0.1</Version>
     </PropertyGroup>
 </Project>

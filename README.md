@@ -19,7 +19,7 @@
 - Getting/Using service after init the test service.
 - Provide hooks like `SetupFixture`, `Configure*` Methods.
 - Fake Authentication!!
-- Verify your service registration for your conditional registration logic.
+- Verify your service registration for your conditional registration logic. :satisfied:
 
 ## Getting Start!
 

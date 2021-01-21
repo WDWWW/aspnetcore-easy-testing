@@ -10,15 +10,16 @@
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/y/wdwww/aspnetcore-easy-testing)
 
 ## Features
-
-- Replace InMemoryDb Easily
+- Replace to memory cache for `IDistributedCache`
+- Replace to InMemoryDb Easily for your DbContext
 - Replace internal service to your own object.
 - Change ASP.NET Core host environment value(like `Development`, `Production`) 
 - Mock/Fake internal service using by Moq, FakeItEasy, NSubstitute
 - Provide build api for writing testing code declarative.
 - Getting/Using service after init the test service.
 - Provide hooks like `SetupFixture`, `Configure*` Methods.
-- Fake Authentication
+- Fake Authentication!!
+- Verify your service registration for your conditional registration logic.
 
 ## Getting Start!
 

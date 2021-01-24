@@ -17,6 +17,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 using Microsoft.Extensions.Options;
 using Wd3w.AspNetCore.EasyTesting.Internal;
 
@@ -74,6 +76,31 @@ namespace Wd3w.AspNetCore.EasyTesting
             };
             return this;
         }
+
+        /// <summary>
+        ///     Replace logger providers with new logger factory 
+        /// </summary>
+        /// <param name="providers"></param>
+        /// <returns></returns>
+        public SystemUnderTest ReplaceLoggerFactory(params ILoggerProvider[] providers)
+        {
+            CheckClientIsNotCreated(nameof(ReplaceLoggerFactory));
+            ReplaceService<ILoggerFactory>(new LoggerFactory(providers));
+            return this;
+        }
+
+        /// <summary>
+        ///     Replace logger factory with logger builder
+        /// </summary>
+        /// <param name="configure"></param>
+        /// <returns></returns>
+        public SystemUnderTest ReplaceLoggerFactory(Action<ILoggingBuilder> configure)
+        {
+            CheckClientIsNotCreated(nameof(ReplaceLoggerFactory));
+            ReplaceService(LoggerFactory.Create(configure));
+            return this;
+        }
+
 
         /// <summary>
         ///     Replace distributed cache to in-memory cache for testing.

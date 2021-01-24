@@ -266,6 +266,8 @@ await client.DoSomethingAsync(new { Property = 1 });
 - `DisableOptionDataAnnotationValidation` : Disable only data annotation validation.
 - `VerifyRegistrationByCondition` : Verify service registration by condition expression. 
 - `OverrideAppConfiguration` overloads
+- `ReplaceLoggerFactory` : Replace logger factory to generating custom logger.
+  - for example : [checkout XUnit test sample](src/Wd3w.AspNetCore.EasyTesting.Test/SystemUnderTest/ReplaceLoggerFactoryTest.cs)
 
 
 ### And more use cases..

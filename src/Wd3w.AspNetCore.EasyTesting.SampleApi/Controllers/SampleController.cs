@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Wd3w.AspNetCore.EasyTesting.SampleApi.Models;
 using Wd3w.AspNetCore.EasyTesting.SampleApi.Services;
 
@@ -16,13 +17,15 @@ namespace Wd3w.AspNetCore.EasyTesting.SampleApi.Controllers
         private readonly ISampleService _service;
         private readonly SampleRepository _repository;
         private readonly IHostEnvironment _environment;
+        private readonly IOptionsSnapshot<SampleOption> _optionsSnapshot;
 
-        public SampleController(ILogger<SampleController> logger, ISampleService service, SampleRepository repository, IHostEnvironment environment)
+        public SampleController(ILogger<SampleController> logger, ISampleService service, SampleRepository repository, IHostEnvironment environment, IOptionsSnapshot<SampleOption> optionsSnapshot)
         {
             _logger = logger;
             _service = service;
             _repository = repository;
             _environment = environment;
+            _optionsSnapshot = optionsSnapshot;
         }
 
 
@@ -53,6 +56,12 @@ namespace Wd3w.AspNetCore.EasyTesting.SampleApi.Controllers
         public string GetEnvironment()
         {
             return _environment.EnvironmentName;
+        }
+
+        [HttpGet("configuration")]
+        public SampleOption GetConfiguration()
+        {
+            return _optionsSnapshot.Value;
         }
     }
 }

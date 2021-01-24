@@ -1,7 +1,11 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
@@ -44,14 +48,12 @@ namespace Wd3w.AspNetCore.EasyTesting
         internal void CheckClientIsNotCreated(string methodName)
         {
             if (ServiceProvider != default)
-                throw new InvalidOperationException(
-                    $"{methodName}는 CreateClient/CreateHestify CreateClient/CreateHestify 호출 이전에만 사용할 수 있습니다.");
+                throw new InvalidOperationException($"{methodName} can be using before calling CreateClient/Create* methods.");
         }
 
         internal void CheckClientIsCreated(string methodName)
         {
-            if (ServiceProvider == default)
-                throw new InvalidOperationException($"{methodName}는 CreateClient/CreateHestify 생성 이후에만 사용할 수 있습니다.");
+            if (ServiceProvider == default) throw new InvalidOperationException($"{methodName} can be using after calling CreateClient/Create& methods.");
         }
 
         /// <summary>
@@ -95,6 +97,80 @@ namespace Wd3w.AspNetCore.EasyTesting
         {
             CheckClientIsNotCreated(nameof(ReplaceService));
             OnConfigureTestServices += services => services.Replace(new ServiceDescriptor(typeof(TService), obj));
+            return this;
+        }
+        
+        /// <summary>
+        ///     Replace registered configure options.
+        /// </summary>
+        /// <param name="configurer">Option configurer</param>
+        /// <typeparam name="TOptions"></typeparam>
+        /// <returns></returns>
+        public SystemUnderTest ReplaceConfigureOptions<TOptions>(Action<TOptions> configurer) where TOptions : class
+        {
+            CheckClientIsNotCreated(nameof(ReplaceConfigureOptions));
+            OnConfigureTestServices += services =>
+            {
+                services.RemoveAll<IConfigureOptions<TOptions>>();
+                services.AddSingleton<IConfigureOptions<TOptions>>(new ConfigureOptions<TOptions>(configurer));
+            };
+            return this;
+        }
+        
+        /// <summary>
+        ///     Replace registered named options configurer
+        /// </summary>
+        /// <param name="name">Option name</param>
+        /// <param name="configurer"></param>
+        /// <typeparam name="TOptions"></typeparam>
+        /// <returns></returns>
+        public SystemUnderTest ReplaceNamedConfigureOptions<TOptions>(string name, Action<TOptions> configurer) where TOptions : class
+        {
+            CheckClientIsNotCreated(nameof(ReplaceConfigureOptions));
+            OnConfigureTestServices += services =>
+            {
+                foreach (var remove in services.Where(descriptor => descriptor.ServiceType == typeof(IConfigureOptions<TOptions>))
+                    .Where(descriptor => descriptor.ImplementationInstance is ConfigureNamedOptions<TOptions> configure && configure.Name == name)
+                    .ToList())
+                {
+                    services.Remove(remove);
+                }
+
+                services.AddSingleton<IConfigureOptions<TOptions>>(new ConfigureNamedOptions<TOptions>(name, configurer));
+            };
+            return this;
+        }
+        
+        /// <summary>
+        ///     Remove registered IValidateOptions for TOptions
+        /// </summary>
+        /// <typeparam name="TOptions">Option class</typeparam>
+        /// <returns></returns>
+        public SystemUnderTest DisableOptionValidations<TOptions>() where TOptions : class
+        {
+            CheckClientIsNotCreated(nameof(DisableOptionValidations));
+            OnConfigureTestServices += services => services.RemoveAll<IValidateOptions<TOptions>>();
+            return this;
+        }
+
+        /// <summary>
+        ///     Remove data annotation validator only for TOption
+        /// </summary>
+        /// <typeparam name="TOptions">The option class</typeparam>
+        /// <returns></returns>
+        public SystemUnderTest DisableOptionDataAnnotationValidation<TOptions>() where TOptions : class
+        {
+            CheckClientIsNotCreated(nameof(DisableOptionDataAnnotationValidation));
+            OnConfigureTestServices += services =>
+            {
+                var serviceDescriptor = services.FirstOrDefault(descriptor =>
+                    descriptor.ServiceType == typeof(IValidateOptions<TOptions>) &&
+                    descriptor.ImplementationInstance != null &&
+                    descriptor.ImplementationInstance.GetType() == typeof(DataAnnotationValidateOptions<TOptions>));
+
+                if (serviceDescriptor != default)
+                    services.Remove(serviceDescriptor);
+            };
             return this;
         }
 
@@ -252,6 +328,16 @@ namespace Wd3w.AspNetCore.EasyTesting
             GetImplementationType(FindServiceDescriptor<TService>()).Should().Be(typeof(TImplementation));
         }
 
+        /// <summary>
+        ///     Verify service collection with custom condition expression
+        /// </summary>
+        /// <param name="condition"></param>
+        public void VerifyRegistrationByCondition(Expression<Func<ServiceDescriptor, bool>> condition)
+        {
+            CheckServiceCollectionAllocated();
+            _serviceCollection.Should().Contain(condition);
+        }
+
         private ServiceDescriptor FindServiceDescriptor<TService>()
         {
             return _serviceCollection.FirstOrDefault(d => d.ServiceType == typeof(TService))
@@ -292,6 +378,7 @@ namespace Wd3w.AspNetCore.EasyTesting
         /// <returns></returns>
         public SystemUnderTest SetupWebHostBuilder(Action<IWebHostBuilder> configureAction)
         {
+            CheckClientIsNotCreated(nameof(SetupWebHostBuilder));
             OnConfigureWebHostBuilder += configureAction.Invoke;
             return this;
         }
@@ -303,6 +390,7 @@ namespace Wd3w.AspNetCore.EasyTesting
         /// <returns></returns>
         public SystemUnderTest UseEnvironment(string environment)
         {
+            CheckClientIsNotCreated(nameof(UseEnvironment));
             OnConfigureWebHostBuilder += builder => builder.UseEnvironment(environment);
             return this;
         }
@@ -313,6 +401,7 @@ namespace Wd3w.AspNetCore.EasyTesting
         /// <returns></returns>
         public SystemUnderTest UseProductionEnvironment()
         {
+            CheckClientIsNotCreated(nameof(UseProductionEnvironment));
             OnConfigureWebHostBuilder += builder => builder.UseEnvironment(Environments.Production);
             return this;
         }
@@ -323,6 +412,7 @@ namespace Wd3w.AspNetCore.EasyTesting
         /// <returns></returns>
         public SystemUnderTest UseStagingEnvironment()
         {
+            CheckClientIsNotCreated(nameof(UseStagingEnvironment));
             OnConfigureWebHostBuilder += builder => builder.UseEnvironment(Environments.Staging);
             return this;
         }
@@ -333,6 +423,7 @@ namespace Wd3w.AspNetCore.EasyTesting
         /// <returns></returns>
         public SystemUnderTest UseDevelopmentEnvironment()
         {
+            CheckClientIsNotCreated(nameof(UseDevelopmentEnvironment));
             OnConfigureWebHostBuilder += builder => builder.UseEnvironment(Environments.Development);
             return this;
         }
@@ -345,6 +436,7 @@ namespace Wd3w.AspNetCore.EasyTesting
         /// <returns></returns>
         public SystemUnderTest UseSetting(string key, string value)
         {
+            CheckClientIsNotCreated(nameof(UseSetting));
             OnConfigureWebHostBuilder += builder => builder.UseSetting(key, value);
             return this;
         }
@@ -356,7 +448,60 @@ namespace Wd3w.AspNetCore.EasyTesting
         /// <returns></returns>
         public SystemUnderTest ConfigureAppConfiguration(Action<IConfigurationBuilder> configureAction)
         {
+            CheckClientIsNotCreated(nameof(ConfigureAppConfiguration));
             OnConfigureWebHostBuilder += builder => builder.ConfigureAppConfiguration(configureAction);
+            return this;
+        }
+
+        /// <summary>
+        ///     Override app configuration members with options instance
+        /// </summary>
+        /// <param name="options"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public SystemUnderTest OverrideAppConfiguration<T>(T options) where T : class
+        {
+            CheckClientIsNotCreated(nameof(OverrideAppConfiguration));
+            var json = JsonSerializer.SerializeToUtf8Bytes(options);
+            ConfigureAppConfiguration(builder => builder.AddJsonStream(new MemoryStream(json)));
+            return this;
+        }
+
+        /// <summary>
+        ///     Override app configuration members with dynamic instance
+        /// </summary>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        public SystemUnderTest OverrideAppConfiguration(dynamic options)
+        {
+            CheckClientIsNotCreated(nameof(OverrideAppConfiguration));
+            var json = JsonSerializer.SerializeToUtf8Bytes(options);
+            ConfigureAppConfiguration(builder => builder.AddJsonStream(new MemoryStream(json)));
+            return this;
+        }
+
+        /// <summary>
+        ///     Override app configuration members with path
+        /// </summary>
+        /// <param name="configurationPath"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public SystemUnderTest OverrideAppConfiguration(string configurationPath, string value)
+        {
+            CheckClientIsNotCreated(nameof(OverrideAppConfiguration));
+            ConfigureAppConfiguration(builder => builder.AddInMemoryCollection(new []{new KeyValuePair<string, string>(configurationPath, value)}));
+            return this;
+        }
+
+        /// <summary>
+        ///     Override app configuration members with key value collection
+        /// </summary>
+        /// <param name="collection"></param>
+        /// <returns></returns>
+        public SystemUnderTest OverrideAppConfiguration(IDictionary<string, string> collection)
+        {
+            CheckClientIsNotCreated(nameof(OverrideAppConfiguration));
+            ConfigureAppConfiguration(builder => builder.AddInMemoryCollection(collection));
             return this;
         }
 

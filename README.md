@@ -259,6 +259,14 @@ usign var client = new SystemUnderTest<Startup>()
 await client.DoSomethingAsync(new { Property = 1 });
 ```
 
+### To be documented
+- `ReplaceConfigureOptions` : Replace registered configure options. if you used custom configure some option class in startup class.
+- `ReplaceNamedConfigureOptions` : Like above but just for named options.
+- `DisableOptionValidations` : Remove all options validators about `TOptions`
+- `DisableOptionDataAnnotationValidation` : Disable only data annotation validation.
+- `VerifyRegistrationByCondition` : Verify service registration by condition expression. 
+- `OverrideAppConfiguration` overloads
+
 
 ### And more use cases..
 

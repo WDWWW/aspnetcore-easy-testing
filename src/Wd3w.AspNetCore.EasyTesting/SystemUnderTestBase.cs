@@ -18,7 +18,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Console;
 using Microsoft.Extensions.Options;
 using Wd3w.AspNetCore.EasyTesting.Internal;
 
@@ -29,7 +28,7 @@ using Wd3w.AspNetCore.EasyTesting.Internal;
 
 namespace Wd3w.AspNetCore.EasyTesting
 {
-    public abstract class SystemUnderTest : IDisposable
+    public abstract partial class SystemUnderTest : IDisposable
     {
         private IServiceCollection _serviceCollection;
 
@@ -51,6 +50,34 @@ namespace Wd3w.AspNetCore.EasyTesting
         {
             if (ServiceProvider != default)
                 throw new InvalidOperationException($"{methodName} can be using before calling CreateClient/Create* methods.");
+        }
+
+        internal SystemUnderTest CheckClientIsNotCreated(string methodName, Action action)
+        {
+            CheckClientIsNotCreated(methodName);
+            action();
+            return this;
+        }
+
+        internal SystemUnderTest CheckClientIsNotCreated(string methodName, SetupFixtureHandler action)
+        {
+            CheckClientIsNotCreated(methodName);
+            OnSetupFixtures += action;
+            return this;
+        }
+        
+        internal SystemUnderTest CheckClientIsNotCreatedAndConfigureServices(string methodName, ConfigureTestServiceHandler action)
+        {
+            CheckClientIsNotCreated(methodName);
+            OnConfigureTestServices += action;
+            return this;
+        }
+        
+        internal SystemUnderTest CheckClientIsNotCreated(string methodName, ConfigureWebHostBuilderHandler action)
+        {
+            CheckClientIsNotCreated(methodName);
+            OnConfigureWebHostBuilder += action;
+            return this;
         }
 
         internal void CheckClientIsCreated(string methodName)
@@ -126,7 +153,7 @@ namespace Wd3w.AspNetCore.EasyTesting
             OnConfigureTestServices += services => services.Replace(new ServiceDescriptor(typeof(TService), obj));
             return this;
         }
-        
+
         /// <summary>
         ///     Replace registered configure options.
         /// </summary>
@@ -143,7 +170,107 @@ namespace Wd3w.AspNetCore.EasyTesting
             };
             return this;
         }
+
+        /// <summary>
+        ///     Remove all TService service registrations.
+        /// </summary>
+        /// <typeparam name="TService"></typeparam>
+        /// <returns></returns>
+        public SystemUnderTest RemoveAll<TService>()
+        {
+            return CheckClientIsNotCreatedAndConfigureServices(nameof(RemoveAll), services => services.RemoveAll<TService>());
+        }
+
+        /// <summary>
+        ///     Remove all TService service registrations.
+        /// </summary>
+        /// <param name="serviceType"></param>
+        /// <returns></returns>
+        public SystemUnderTest RemoveAll(Type serviceType)
+        {
+            return CheckClientIsNotCreatedAndConfigureServices(nameof(RemoveAll), services => services.RemoveAll(serviceType));
+        }
+
+        /// <summary>
+        ///     Remove TImplementation of TService registrations.
+        /// </summary>
+        /// <typeparam name="TService"></typeparam>
+        /// <typeparam name="TImplementation"></typeparam>
+        /// <returns></returns>
+        public SystemUnderTest Remove<TService, TImplementation>()
+        {
+            return Remove(typeof(TService), typeof(TImplementation));
+        }
+
+        /// <summary>
+        ///     Remove implementationType of serviceType registrations.
+        /// </summary>
+        /// <param name="serviceType"></param>
+        /// <param name="implementationType"></param>
+        /// <returns></returns>
+        public SystemUnderTest Remove(Type serviceType, Type implementationType)
+        {
+            return CheckClientIsNotCreatedAndConfigureServices(nameof(Remove), services =>
+            {
+                var descriptor = services.FirstOrDefault(registration =>
+                    registration.ServiceType == serviceType &&
+                    registration.ImplementationType == implementationType);
+                if (descriptor == default) return;
+                services.Remove(descriptor);
+            });
+        }
+
+        /// <summary>
+        ///     Remove registration by condition expression.
+        /// </summary>
+        /// <param name="condition"></param>
+        /// <returns></returns>
+        public SystemUnderTest RemoveAllBy(Func<ServiceDescriptor, bool> condition)
+        {
+            return CheckClientIsNotCreatedAndConfigureServices(nameof(RemoveAllBy), services =>
+            {
+                foreach (var descriptor in services.Where(condition).ToArray())
+                {
+                    services.Remove(descriptor);
+                }
+            });
+        }
         
+        /// <summary>
+        ///     Remove only one registration by condition.
+        /// </summary>
+        /// <param name="condition"></param>
+        /// <returns></returns>
+        public SystemUnderTest RemoveSingleBy(Func<ServiceDescriptor, bool> condition)
+        {
+            return CheckClientIsNotCreatedAndConfigureServices(nameof(RemoveSingleBy), services => services.Remove(services.Single(condition)));
+        }
+
+        /// <summary>
+        ///     Remove all startup filters.
+        /// </summary>
+        /// <returns></returns>
+        public SystemUnderTest DisableStartupFilters()
+        {
+            return CheckClientIsNotCreatedAndConfigureServices(nameof(DisableStartupFilters), services => services.RemoveAll<IStartupFilter>());
+        }
+
+        /// <summary>
+        ///     Remove specific startup filter for TImplementationFilter
+        /// </summary>
+        /// <typeparam name="TImplementationFilter"></typeparam>
+        /// <returns></returns>
+        public SystemUnderTest DisableStartupFilter<TImplementationFilter>()
+            where TImplementationFilter : IStartupFilter
+        {
+            var filterType = typeof(TImplementationFilter);
+            return CheckClientIsNotCreatedAndConfigureServices(nameof(DisableStartupFilter), services =>
+            {
+                var registration = services.First(descriptor => descriptor.ImplementationType == filterType || descriptor.ImplementationInstance?.GetType() == filterType);
+                services.Remove(registration);
+            });
+        }
+
         /// <summary>
         ///     Replace registered named options configurer
         /// </summary>
@@ -329,40 +456,6 @@ namespace Wd3w.AspNetCore.EasyTesting
             var provider = scope.ServiceProvider;
             action.Invoke(provider.GetService<TService1>(), ServiceProvider.GetService<TService2>(),
                 ServiceProvider.GetService<TService3>());
-        }
-
-        /// <summary>
-        ///     Verify lifetime of registered service.
-        /// </summary>
-        /// <param name="lifetime"></param>
-        /// <typeparam name="TService"></typeparam>
-        /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
-        public void VerifyRegisteredLifeTimeOfService<TService>(ServiceLifetime lifetime)
-        {
-            CheckServiceCollectionAllocated();
-            FindServiceDescriptor<TService>().Lifetime.Should().Be(lifetime);
-        }
-
-        /// <summary>
-        ///     Verify implementation type of registered service.
-        /// </summary>
-        /// <typeparam name="TService"></typeparam>
-        /// <typeparam name="TImplementation"></typeparam>
-        public void VerifyRegisteredImplementationTypeOfService<TService, TImplementation>()
-        {
-            CheckServiceCollectionAllocated();
-            GetImplementationType(FindServiceDescriptor<TService>()).Should().Be(typeof(TImplementation));
-        }
-
-        /// <summary>
-        ///     Verify service collection with custom condition expression
-        /// </summary>
-        /// <param name="condition"></param>
-        public void VerifyRegistrationByCondition(Expression<Func<ServiceDescriptor, bool>> condition)
-        {
-            CheckServiceCollectionAllocated();
-            _serviceCollection.Should().Contain(condition);
         }
 
         private ServiceDescriptor FindServiceDescriptor<TService>()

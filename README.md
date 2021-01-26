@@ -259,7 +259,7 @@ usign var client = new SystemUnderTest<Startup>()
 await client.DoSomethingAsync(new { Property = 1 });
 ```
 
-### To be documented
+### More methods.
 - `ReplaceConfigureOptions` : Replace registered configure options. if you used custom configure some option class in startup class.
 - `ReplaceNamedConfigureOptions` : Like above but just for named options.
 - `DisableOptionValidations` : Remove all options validators about `TOptions`
@@ -268,7 +268,9 @@ await client.DoSomethingAsync(new { Property = 1 });
 - `OverrideAppConfiguration` overloads
 - `ReplaceLoggerFactory` : Replace logger factory to generating custom logger.
   - for example : [checkout XUnit test sample](src/Wd3w.AspNetCore.EasyTesting.Test/SystemUnderTest/ReplaceLoggerFactoryTest.cs)
-
+- `DisableStartupFilters`, `DisableStartupFilter<TImplementationFilter>` : Remove service registrations of `IStartFilter`
+- `RemoveSingleBy`, `RemoveAllBy`, `Remove`, `RemoveAll` : Remove service or implementation types.
+- `VerifyNoRegistrationByCondition`, `VerifyNoRegistration` : Verify there are no registration of condition or service type.
 
 ### And more use cases..
 

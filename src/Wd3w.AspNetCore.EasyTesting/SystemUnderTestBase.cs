@@ -646,9 +646,11 @@ namespace Wd3w.AspNetCore.EasyTesting
 
         internal void ExecuteSetupFixture()
         {
+            if (OnSetupFixtures == null) return;
+            
             using var scope = ServiceProvider.CreateScope();
             Task.WhenAll(OnSetupFixtures
-                    ?.GetInvocationList()
+                    .GetInvocationList()
                     .Cast<SetupFixtureHandler>()
                     .Select(handler => handler(scope.ServiceProvider)))
                 .Wait();

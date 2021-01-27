@@ -37,7 +37,6 @@ namespace Wd3w.AspNetCore.EasyTesting.EntityFrameworkCore
                 .SetupFixture<TDbContext>(async context =>
                 {
                     var database = context.Database;
-                    await database.OpenConnectionAsync();
                     await database.EnsureDeletedAsync();
                     await database.EnsureCreatedAsync();
                 });

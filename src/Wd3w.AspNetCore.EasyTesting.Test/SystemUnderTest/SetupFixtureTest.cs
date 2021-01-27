@@ -61,5 +61,22 @@ namespace Wd3w.AspNetCore.EasyTesting.Test.SystemUnderTest
             // Then
             callSetupFixture.Should().Throw<InvalidOperationException>();
         }
+
+        [Fact]
+        public void Should_ThrowAllExcpetionOnAggregateException_When_MultipleFixtureInvocationsAreThrowingException()
+        {
+            // Given
+            SUT.SetupFixture<ISampleService>(_ => Task.FromException(new Exception()))
+                .SetupFixture<ISampleService>(_ => Task.FromException(new Exception()))
+                .SetupFixture<ISampleService>(_ => Task.FromException(new Exception()))
+                .SetupFixture<ISampleService>(_ => Task.FromException(new Exception()));
+
+            // When
+            Action action = () => SUT.CreateClient();
+            
+            // Then
+            action.Should().Throw<AggregateException>()
+                .And.InnerExceptions.Should().HaveCount(4);
+        }
     }
 }

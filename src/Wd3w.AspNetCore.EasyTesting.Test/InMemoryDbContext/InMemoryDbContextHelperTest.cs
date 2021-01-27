@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -12,6 +13,19 @@ namespace Wd3w.AspNetCore.EasyTesting.Test.InMemoryDbContext
 {
     public class InMemoryDbContextHelperTest : EasyTestingTestBase
     {
+        [Fact]
+        public async Task Should_BeFine_When_ReplaceInMemoryDbContext()
+        {
+            // Given
+            SUT.ReplaceInMemoryDbContext<SampleDb>();
+            
+            // When
+            Action action = () => SUT.CreateClient();
+            
+            // Then
+            action.Should().NotThrow<Exception>();
+        }
+        
         [Fact]
         public async Task ReplaceInMemoryDbContextTest()
         {

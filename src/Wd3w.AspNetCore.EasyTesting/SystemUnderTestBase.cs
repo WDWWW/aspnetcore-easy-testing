@@ -2,12 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading.Tasks;
-using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -649,7 +647,11 @@ namespace Wd3w.AspNetCore.EasyTesting
         internal void ExecuteSetupFixture()
         {
             using var scope = ServiceProvider.CreateScope();
-            OnSetupFixtures?.Invoke(scope.ServiceProvider).Wait();
+            Task.WhenAll(OnSetupFixtures
+                    ?.GetInvocationList()
+                    .Cast<SetupFixtureHandler>()
+                    .Select(handler => handler(scope.ServiceProvider)))
+                .Wait();
         }
 
         /// <summary>
